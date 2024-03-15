@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
+import plugin from "tailwindcss/plugin";
 
 const config = {
   darkMode: ["class"],
@@ -74,12 +75,24 @@ const config = {
         },
       },
       animation: {
+        spin: "spin 0.75s linear infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    plugin(({ addComponents }) => {
+      addComponents({
+        ".bg-grid": {
+          backgroundImage:
+            "linear-gradient(to right, #80808012 1px, transparent 1px), linear-gradient(to bottom, #80808012 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+        },
+      });
+    }),
+  ],
 } satisfies Config;
 
 export default config;

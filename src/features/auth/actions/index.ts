@@ -10,7 +10,7 @@ export async function signInWithGithub() {
   const response = await supabase.auth.signInWithOAuth({
     provider: "github",
     options: {
-      redirectTo: `${SITE_URL}/auth/callback`,
+      redirectTo: `${SITE_URL}/callback`,
     },
   });
 
@@ -26,7 +26,7 @@ export async function signInWithGoogle() {
   const response = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${SITE_URL}/auth/callback`,
+      redirectTo: `${SITE_URL}/callback`,
     },
   });
 
@@ -44,5 +44,5 @@ export async function signOut() {
     cookies().delete("user_session");
   }
 
-  redirect("/auth/login");
+  redirect("/login");
 }

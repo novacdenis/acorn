@@ -1,7 +1,12 @@
 import { type NextRequest } from "next/server";
 import { updateSession } from "./lib/supabase/middleware";
 
+function assignPathname(request: NextRequest) {
+  request.headers.set("x-pathname", request.nextUrl.pathname);
+}
+
 export async function middleware(request: NextRequest) {
+  assignPathname(request);
   return await updateSession(request);
 }
 

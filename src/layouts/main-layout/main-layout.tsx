@@ -1,6 +1,18 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MainLayoutMenu } from "./main-layout-menu";
+import { ArrowUpTrayIcon, Cog6ToothIcon, UserCircleIcon } from "@heroicons/react/16/solid";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MainLayoutLogout } from "./main-layout-logout";
 import { MainLayoutNotifications } from "./main-layout-notifications";
 
 export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -15,7 +27,40 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
 
           <div className="flex items-center space-x-3">
             <MainLayoutNotifications />
-            <MainLayoutMenu />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Avatar className="h-8 w-8 cursor-pointer">
+                  <AvatarImage src="https://github.com/novacdenis.png" alt="@novacdenis" />
+                  <AvatarFallback>ND</AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <DropdownMenuShortcut>
+                      <UserCircleIcon className="h-4 w-4" />
+                    </DropdownMenuShortcut>
+                    <span className="ml-2">Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <DropdownMenuShortcut>
+                      <Cog6ToothIcon className="h-4 w-4" />
+                    </DropdownMenuShortcut>
+                    <span className="ml-2">Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <DropdownMenuShortcut>
+                      <ArrowUpTrayIcon className="h-4 w-4" />
+                    </DropdownMenuShortcut>
+                    <span className="ml-2">Import</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <MainLayoutLogout />
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>

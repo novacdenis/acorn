@@ -1,6 +1,6 @@
 "use client";
 
-import type { Category, Expense } from "../../types";
+import type { Category, Expense } from "../types";
 import React from "react";
 import { AxisLeft, AxisBottom } from "@visx/axis";
 import { Group } from "@visx/group";
@@ -8,7 +8,6 @@ import { ParentSize } from "@visx/responsive";
 import { scaleBand, scaleLinear, scaleOrdinal } from "@visx/scale";
 import { BarStack } from "@visx/shape";
 import { Text } from "@visx/text";
-import styles from "./expenses-chart.module.css";
 
 const query = "(max-width: 768px)";
 
@@ -20,12 +19,20 @@ const dateFormatter = new Intl.DateTimeFormat("ro-MD", {
   month: "narrow",
 });
 
-export interface VisualizationProps {
+const colors = {
+  household: "#f56565",
+  transport: "#68d391",
+  food: "#ecc94b",
+  utilities: "#4299e1",
+  other: "#9f7aea",
+};
+
+interface VisualizationProps {
   width: number;
   data: Expense[];
 }
 
-export const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
+const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
   const [height, setHeight] = React.useState(320);
   const [margin, setMargin] = React.useState({
     top: 15,
@@ -81,28 +88,6 @@ export const Visualization: React.FC<VisualizationProps> = ({ width, data }) => 
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="bg-background">
-      <defs>
-        <linearGradient id="gradient-household" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#f56565" stopOpacity={0.75} />
-          <stop offset="100%" stopColor="#f56565" stopOpacity={0.8} />
-        </linearGradient>
-        <linearGradient id="gradient-transport" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#68d391" stopOpacity={0.75} />
-          <stop offset="100%" stopColor="#68d391" stopOpacity={0.8} />
-        </linearGradient>
-        <linearGradient id="gradient-food" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#ecc94b" stopOpacity={0.75} />
-          <stop offset="100%" stopColor="#ecc94b" stopOpacity={0.8} />
-        </linearGradient>
-        <linearGradient id="gradient-utilities" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#4299e1" stopOpacity={0.75} />
-          <stop offset="100%" stopColor="#4299e1" stopOpacity={0.8} />
-        </linearGradient>
-        <linearGradient id="gradient-other" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#9f7aea" stopOpacity={0.75} />
-          <stop offset="100%" stopColor="#9f7aea" stopOpacity={0.8} />
-        </linearGradient>
-      </defs>
       <Group left={margin.left} top={margin.top}>
         <Group className="bars">
           <BarStack<Expense, Category>
@@ -116,18 +101,16 @@ export const Visualization: React.FC<VisualizationProps> = ({ width, data }) => 
             {(barStacks) =>
               barStacks.map((barStack) =>
                 barStack.bars.map((bar) => (
-                  <React.Fragment key={`bar-stack-${barStack.index}-${bar.index}`}>
-                    <rect
-                      key={`bar-stack-${barStack.index}-${bar.index}`}
-                      x={bar.x}
-                      y={bar.y + 2}
-                      height={Math.max(0, bar.height - 2)}
-                      width={bar.width}
-                      fill={`url(#gradient-${barStack.key})`}
-                      rx={2}
-                      ry={2}
-                    />
-                  </React.Fragment>
+                  <rect
+                    key={`bar-stack-${barStack.index}-${bar.index}`}
+                    x={bar.x}
+                    y={bar.y + 2}
+                    height={Math.max(0, bar.height - 2)}
+                    width={bar.width}
+                    fill={colors[barStack.key]}
+                    rx={2}
+                    ry={2}
+                  />
                 ))
               )
             }
@@ -138,22 +121,28 @@ export const Visualization: React.FC<VisualizationProps> = ({ width, data }) => 
           <AxisBottom
             scale={xScale}
             top={innerHeight}
-            axisLineClassName={styles.axisLine}
-            tickLineProps={{ className: styles.tickLine }}
+            axisLineClassName="stroke-muted-foreground"
+            tickLineProps={{ className: "stroke-muted-foreground" }}
             tickFormat={(value) => dateFormatter.format(value.valueOf())}
             tickComponent={({ formattedValue, ...rest }) => (
-              <Text {...rest} className={styles.tickLabel}>
+              <Text
+                {...rest}
+                className="fill-muted-foreground font-sans text-xs font-medium md:text-sm"
+              >
                 {formattedValue}
               </Text>
             )}
           />
           <AxisLeft
             scale={yScale}
-            axisLineClassName={styles.axisLine}
-            tickLineProps={{ className: styles.tickLine }}
+            axisLineClassName="stroke-muted-foreground"
+            tickLineProps={{ className: "stroke-muted-foreground" }}
             tickFormat={(value) => numberFormatter.format(value.valueOf())}
             tickComponent={({ formattedValue, ...rest }) => (
-              <Text {...rest} className={styles.tickLabel}>
+              <Text
+                {...rest}
+                className="fill-muted-foreground font-sans text-xs font-medium md:text-sm"
+              >
                 {formattedValue}
               </Text>
             )}
@@ -173,5 +162,3 @@ export const ExpensesChart: React.FC<ExpensesChartProps> = (props) => {
     </ParentSize>
   );
 };
-
-export default ExpensesChart;

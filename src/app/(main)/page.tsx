@@ -14,6 +14,7 @@ import {
   MetricValue,
 } from "@/features/monitoring";
 import { ExpensesChart } from "@/features/monitoring/components/expenses-chart";
+import { createClient } from "@/lib/supabase/server";
 
 const data = [
   { timestamp: new Date("2021-01-01").getTime() },
@@ -30,7 +31,10 @@ const data = [
   { timestamp: new Date("2021-12-01").getTime() },
 ];
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = createClient();
+  const user = await supabase.auth.getUser();
+
   return (
     <>
       <Section className="container mt-0 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
@@ -102,6 +106,10 @@ export default function DashboardPage() {
           />
         </SectionContent>
       </Section>
+
+      <pre>
+        <code>{JSON.stringify(user, null, 2)}</code>
+      </pre>
     </>
   );
 }

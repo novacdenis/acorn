@@ -17,6 +17,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { signOut } from "@/features/auth";
 
 export const MainLayoutMenu: React.FC = () => {
   return (
@@ -51,7 +52,11 @@ export const MainLayoutMenu: React.FC = () => {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            signOut();
+          }}
+        >
           <DropdownMenuShortcut>
             <ArrowLeftStartOnRectangleIcon className="h-4 w-4" />
           </DropdownMenuShortcut>

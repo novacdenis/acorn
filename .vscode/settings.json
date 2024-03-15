@@ -15,6 +15,7 @@
     "maib",
     "supabase",
     "tailwindcss",
+    "valibot",
     "visx"
   ]
 }

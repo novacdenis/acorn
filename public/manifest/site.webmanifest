@@ -1,0 +1,9 @@
+{
+  "name": "Acorn",
+  "short_name": "Acorn",
+  "icons": [
+    { "src": "/manifest/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/manifest/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "display": "standalone"
+}

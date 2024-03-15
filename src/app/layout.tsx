@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import { cn } from "@/utils";
@@ -27,7 +28,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="background-color" media="(prefers-color-scheme: light)" content="white" />
         <meta name="background-color" media="(prefers-color-scheme: dark)" content="black" />
       </head>
-      <body className="dark">{children}</body>
+      <body className="dark">
+        {children}
+        <SpeedInsights />
+      </body>
     </html>
   );
 }

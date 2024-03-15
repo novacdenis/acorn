@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { MainLayoutMenu } from "./main-layout-menu";
+import { MainLayoutNotifications } from "./main-layout-notifications";
 
 export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -10,6 +12,11 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
             <Image src="/images/logo.svg" alt="Acorn" width={24} height={24} className="h-6 w-6" />
             <span className="ml-2 translate-y-px font-medium">Acorn</span>
           </Link>
+
+          <div className="flex items-center space-x-3">
+            <MainLayoutNotifications />
+            <MainLayoutMenu />
+          </div>
         </div>
       </header>
       <main className="py-6">{children}</main>

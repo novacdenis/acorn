@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
-import { MainLayout } from "@/layouts";
 import { cn } from "@/utils";
 
 import "@/styles/index.css";
@@ -28,9 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="background-color" media="(prefers-color-scheme: light)" content="white" />
         <meta name="background-color" media="(prefers-color-scheme: dark)" content="black" />
       </head>
-      <body className="dark">
-        <MainLayout>{children}</MainLayout>
-      </body>
+      <body className="dark">{children}</body>
     </html>
   );
 }

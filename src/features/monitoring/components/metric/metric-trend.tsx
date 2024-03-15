@@ -1,5 +1,6 @@
 "use client";
 
+import type { Trend } from "../../types";
 import React from "react";
 import { curveMonotoneX } from "@visx/curve";
 import { Group } from "@visx/group";
@@ -8,18 +9,13 @@ import { scaleLinear, scaleTime } from "@visx/scale";
 import { AreaClosed } from "@visx/shape";
 import { motion } from "framer-motion";
 
-export interface Trend {
-  timestamp: number;
-  amount: number;
-}
-
-interface VisualizationProps {
+export interface VisualizationProps {
   width: number;
   data: Trend[];
 }
 
-const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
-  const [height, setHeight] = React.useState(0);
+export const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
+  const [height, setHeight] = React.useState(30);
   const [margin, setMargin] = React.useState({
     top: 5,
     right: -2,
@@ -117,3 +113,5 @@ export const MetricTrend: React.FC<MetricTrendProps> = ({ ...props }) => {
     </ParentSize>
   );
 };
+
+export default MetricTrend;

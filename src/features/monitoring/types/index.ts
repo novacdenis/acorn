@@ -9,3 +9,11 @@ export interface Expense extends Record<Category, number> {
   timestamp: number;
   total: number;
 }
+
+export interface TransactionInterface {
+  id: string;
+  description: string;
+  category: string;
+  amount: number;
+  timestamp: number;
+}

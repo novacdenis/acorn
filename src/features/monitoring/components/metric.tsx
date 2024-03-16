@@ -2,7 +2,7 @@ import React from "react";
 import { cn } from "@/utils";
 
 const Metric = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => {
+  ({ className, style, ...props }, ref) => {
     return (
       <div
         ref={ref}
@@ -13,6 +13,7 @@ const Metric = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElem
         )}
         style={{
           gridTemplateAreas: `"title title" "value delta" "description description"`,
+          ...style,
         }}
         {...props}
       />
@@ -22,11 +23,11 @@ const Metric = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElem
 Metric.displayName = "Metric";
 
 const MetricTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, ...props }, ref) => (
+  ({ className, style, ...props }, ref) => (
     <h3
       ref={ref}
       className={cn("text-sm font-medium text-primary/90 md:text-base", className)}
-      style={{ gridArea: "title" }}
+      style={{ gridArea: "title", ...style }}
       {...props}
     />
   )
@@ -34,11 +35,11 @@ const MetricTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HT
 MetricTitle.displayName = "MetricTitle";
 
 const MetricValue = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, ...props }, ref) => (
+  ({ className, style, ...props }, ref) => (
     <h4
       ref={ref}
       className={cn("text-xl font-bold text-primary md:text-2xl", className)}
-      style={{ gridArea: "value" }}
+      style={{ gridArea: "value", ...style }}
       {...props}
     />
   )
@@ -50,7 +51,7 @@ export interface MetricDeltaProps extends React.HTMLAttributes<HTMLParagraphElem
 }
 
 const MetricDelta = React.forwardRef<HTMLParagraphElement, MetricDeltaProps>(
-  ({ delta, className, children, ...props }, ref) => {
+  ({ delta, className, style, children, ...props }, ref) => {
     return (
       <p
         ref={ref}
@@ -62,7 +63,7 @@ const MetricDelta = React.forwardRef<HTMLParagraphElement, MetricDeltaProps>(
           },
           className
         )}
-        style={{ gridArea: "delta", justifySelf: "start" }}
+        style={{ gridArea: "delta", justifySelf: "start", ...style }}
         {...props}
       >
         <svg
@@ -90,11 +91,11 @@ MetricDelta.displayName = "MetricDelta";
 const MetricDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
   <p
     ref={ref}
     className={cn("text-xs text-primary/70 md:text-sm", className)}
-    style={{ gridArea: "description" }}
+    style={{ gridArea: "description", ...style }}
     {...props}
   />
 ));

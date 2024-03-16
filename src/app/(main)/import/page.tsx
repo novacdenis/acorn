@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   Section,
   SectionContent,
@@ -7,12 +8,18 @@ import {
 } from "@/components/ui/section";
 import { Upload } from "@/features/import";
 
+export const metadata: Metadata = {
+  title: "Import",
+};
+
 export default function ImportPage() {
   return (
     <Section className="mt-0">
       <SectionHeader>
         <SectionTitle>Import</SectionTitle>
-        <SectionDescription>Import your transactions from a file</SectionDescription>
+        <SectionDescription>
+          Upload transactions from files for easy integration.
+        </SectionDescription>
       </SectionHeader>
       <SectionContent>
         <Upload />

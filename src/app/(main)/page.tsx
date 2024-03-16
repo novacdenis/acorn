@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   Section,
   SectionContent,
@@ -29,6 +30,10 @@ const data = [
   { timestamp: new Date("2021-11-01").getTime() },
   { timestamp: new Date("2021-12-01").getTime() },
 ];
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+};
 
 export default function DashboardPage() {
   return (
@@ -78,9 +83,7 @@ export default function DashboardPage() {
       <Section>
         <SectionHeader>
           <SectionTitle>Expenses</SectionTitle>
-          <SectionDescription>
-            Visual representation of your expenses over time and by category
-          </SectionDescription>
+          <SectionDescription>Visualize spending patterns by time and category.</SectionDescription>
         </SectionHeader>
         <SectionContent>
           <ExpensesChart
@@ -101,6 +104,14 @@ export default function DashboardPage() {
               }))}
           />
         </SectionContent>
+      </Section>
+
+      <Section>
+        <SectionHeader>
+          <SectionTitle>Transactions</SectionTitle>
+          <SectionDescription>Track financial activities over time.</SectionDescription>
+        </SectionHeader>
+        <SectionContent></SectionContent>
       </Section>
     </>
   );

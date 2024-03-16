@@ -7,7 +7,10 @@ import { cn } from "@/utils";
 import "@/styles/index.css";
 
 export const metadata: Metadata = {
-  title: "Acorn",
+  title: {
+    template: "%s | Acorn",
+    default: "Acorn",
+  },
   description: "Acorn: Track your spending and take control of your finances.",
 };
 

@@ -50,11 +50,13 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
                     </DropdownMenuShortcut>
                     <span className="ml-2">Settings</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <DropdownMenuShortcut>
-                      <ArrowUpTrayIcon className="h-4 w-4" />
-                    </DropdownMenuShortcut>
-                    <span className="ml-2">Import</span>
+                  <DropdownMenuItem asChild>
+                    <Link href="/import">
+                      <DropdownMenuShortcut>
+                        <ArrowUpTrayIcon className="h-4 w-4" />
+                      </DropdownMenuShortcut>
+                      <span className="ml-2">Import</span>
+                    </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />

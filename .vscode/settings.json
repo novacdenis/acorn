@@ -9,6 +9,7 @@
   "css.lint.unknownAtRules": "ignore",
   "cSpell.words": [
     "clsx",
+    "dompurify",
     "fontawesome",
     "fortawesome",
     "heroicons",

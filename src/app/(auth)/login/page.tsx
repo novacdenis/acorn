@@ -10,9 +10,6 @@ export default function LoginPage({
 }) {
   return (
     <>
-      <p>NEXT_PUBLIC_SITE_URL: {process.env.NEXT_PUBLIC_SITE_URL}</p>
-      <p>NEXT_PUBLIC_VERCEL_URL:{process.env.NEXT_PUBLIC_VERCEL_URL}</p>
-
       {searchParams.callback_error && (
         <Alert variant="destructive" className="mb-6">
           <AlertTitle>Error</AlertTitle>

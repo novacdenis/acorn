@@ -9,8 +9,7 @@ function getURL() {
 
   if (process?.env?.NEXT_PUBLIC_SITE_URL) {
     url = `https://${process.env.NEXT_PUBLIC_SITE_URL}`;
-  }
-  if (process?.env?.NEXT_PUBLIC_VERCEL_URL) {
+  } else if (process?.env?.NEXT_PUBLIC_VERCEL_URL) {
     url = `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
   }
 

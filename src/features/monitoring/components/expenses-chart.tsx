@@ -20,10 +20,10 @@ const dateFormatter = new Intl.DateTimeFormat("ro-MD", {
 });
 
 const colors = {
-  household: "#f56565",
+  household: "#fd003a",
   transport: "#68d391",
-  food: "#ecc94b",
-  utilities: "#4299e1",
+  food: "#fe9923",
+  utilities: "#1689fc",
   other: "#9f7aea",
 };
 
@@ -87,7 +87,7 @@ const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
   }, []);
 
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="bg-background">
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
       <Group left={margin.left} top={margin.top}>
         <Group className="bars">
           <BarStack<Expense, Category>

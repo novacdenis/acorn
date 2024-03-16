@@ -14,6 +14,13 @@ export async function GET(request: Request) {
     if (!response.error) {
       return NextResponse.redirect(`${origin}${next}`);
     }
+
+    return NextResponse.redirect(
+      `${origin}/login?callback_error=${encodeURIComponent(response.error.message)}`
+    );
   }
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+
+  return NextResponse.redirect(
+    `${origin}/login?callback_error=${encodeURIComponent("Something went wrong. Please try again.")}`
+  );
 }

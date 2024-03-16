@@ -1,6 +1,7 @@
 "use client";
 
 import type { Provider } from "../types";
+import { useSearchParams } from "next/navigation";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -26,20 +27,22 @@ const icons: Record<Provider, React.JSX.Element> = {
 };
 
 export const LoginForm: React.FC = () => {
+  const searchParams = useSearchParams();
+
   const [isPending, startTransition] = React.useTransition();
   const [activeProvider, setActiveProvider] = React.useState<Provider | null>(null);
 
   const signInWithGithubHandler = () => {
     setActiveProvider("github");
     startTransition(() => {
-      signInWithGithub();
+      signInWithGithub(searchParams.toString());
     });
   };
 
   const signInWithGoogleHandler = () => {
     setActiveProvider("google");
     startTransition(() => {
-      signInWithGoogle();
+      signInWithGoogle(searchParams.toString());
     });
   };
 

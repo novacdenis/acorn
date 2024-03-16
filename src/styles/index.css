@@ -41,7 +41,7 @@
     --muted-foreground: 0 0% 63.9%;
     --accent: 0 0% 14.9%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
@@ -57,16 +57,3 @@
     @apply bg-background text-foreground;
   }
 }
-
-/* @layer components {
-  .bg-grid {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    right: 0;
-    background-image: linear-gradient(to right, #80808012 1px, transparent 1px),
-      linear-gradient(to bottom, #80808012 1px, transparent 1px);
-    background-size: 48px 48px;
-  }
-} */

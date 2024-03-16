@@ -2,15 +2,27 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { SITE_URL } from "@/config";
 import { createClient } from "@/lib/supabase/server";
 
-export async function signInWithGithub() {
+function getURL() {
+  let url = "http://localhost:3000";
+
+  if (process?.env?.NEXT_PUBLIC_SITE_URL) {
+    url = `https://${process.env.NEXT_PUBLIC_SITE_URL}`;
+  }
+  if (process?.env?.NEXT_PUBLIC_VERCEL_URL) {
+    url = `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+  }
+
+  return url;
+}
+
+export async function signInWithGithub(searchParams: string) {
   const supabase = createClient();
   const response = await supabase.auth.signInWithOAuth({
     provider: "github",
     options: {
-      redirectTo: `${SITE_URL}/callback`,
+      redirectTo: `${getURL()}/callback?${searchParams}`,
     },
   });
 
@@ -21,12 +33,12 @@ export async function signInWithGithub() {
   return redirect(response.data.url);
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(searchParams: string) {
   const supabase = createClient();
   const response = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${SITE_URL}/callback`,
+      redirectTo: `${getURL()}/callback?${searchParams}`,
     },
   });
 

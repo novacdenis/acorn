@@ -25,7 +25,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
             <span className="ml-2 translate-y-px font-medium">Acorn</span>
           </Link>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             <MainLayoutNotifications />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

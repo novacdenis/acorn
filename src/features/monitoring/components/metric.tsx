@@ -46,46 +46,43 @@ const MetricValue = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HT
 );
 MetricValue.displayName = "MetricValue";
 
-export interface MetricDeltaProps extends React.HTMLAttributes<HTMLParagraphElement> {
-  delta: "up" | "down";
-}
-
-const MetricDelta = React.forwardRef<HTMLParagraphElement, MetricDeltaProps>(
-  ({ delta, className, style, children, ...props }, ref) => {
-    return (
-      <p
-        ref={ref}
-        className={cn(
-          "inline-flex h-6 items-center rounded-full px-1.5 md:h-8 md:px-2.5",
-          {
-            "bg-green-600/20 text-green-600": delta === "up",
-            "bg-orange-600/20 text-orange-600": delta === "down",
-          },
-          className
-        )}
-        style={{ gridArea: "delta", justifySelf: "start", ...style }}
-        {...props}
+const MetricDelta = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement> & { delta: "up" | "down" }
+>(({ delta, className, style, children, ...props }, ref) => {
+  return (
+    <p
+      ref={ref}
+      className={cn(
+        "inline-flex h-6 items-center rounded-full px-1.5 md:h-8 md:px-2.5",
+        {
+          "bg-green-600/20 text-green-600": delta === "up",
+          "bg-orange-600/20 text-orange-600": delta === "down",
+        },
+        className
+      )}
+      style={{ gridArea: "delta", justifySelf: "start", ...style }}
+      {...props}
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-hidden="true"
+        focusable="false"
+        className={cn("size-3.5 md:size-4", {
+          "rotate-180": delta === "down",
+        })}
+        viewBox="0 0 384 512"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          role="img"
-          aria-hidden="true"
-          focusable="false"
-          className={cn("size-3.5 md:size-4", {
-            "rotate-180": delta === "down",
-          })}
-          viewBox="0 0 384 512"
-        >
-          <path
-            fill="currentColor"
-            d="M214.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-160 160c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 141.2V448c0 17.7 14.3 32 32 32s32-14.3 32-32V141.2L329.4 246.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-160-160z"
-          />
-        </svg>
-        <span className="ml-1 text-sm font-semibold md:text-base">{children}</span>
-      </p>
-    );
-  }
-);
+        <path
+          fill="currentColor"
+          d="M214.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-160 160c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 141.2V448c0 17.7 14.3 32 32 32s32-14.3 32-32V141.2L329.4 246.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-160-160z"
+        />
+      </svg>
+      <span className="ml-1 text-sm font-semibold md:text-base">{children}</span>
+    </p>
+  );
+});
 MetricDelta.displayName = "MetricDelta";
 
 const MetricDescription = React.forwardRef<

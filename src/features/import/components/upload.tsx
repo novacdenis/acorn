@@ -14,7 +14,8 @@ export const Upload: React.FC = () => {
       const html = await file.text();
       const parser = new VBHtmlParser(html);
       const transactions = parser.parse();
-      console.log(transactions);
+      const categories = new Set<string>(transactions.map((t) => t.data.category));
+      console.log(categories);
     } catch (error) {
       console.error(error);
     }

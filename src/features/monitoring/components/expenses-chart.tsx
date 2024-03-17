@@ -155,10 +155,12 @@ const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
 
 export interface ExpensesChartProps extends Omit<VisualizationProps, "width"> {}
 
-export const ExpensesChart: React.FC<ExpensesChartProps> = (props) => {
+const ExpensesChart: React.FC<ExpensesChartProps> = (props) => {
   return (
     <ParentSize debounceTime={10}>
       {({ width }) => <Visualization width={width} {...props} />}
     </ParentSize>
   );
 };
+
+export { ExpensesChart };

@@ -13,7 +13,7 @@ export interface Expense extends Record<Category, number> {
 export interface TransactionInterface {
   id: string;
   description: string;
-  category: string;
   amount: number;
+  category: string;
   timestamp: number;
 }

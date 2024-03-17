@@ -64,4 +64,17 @@
       linear-gradient(to bottom, #80808012 1px, transparent 1px);
     background-size: 48px 48px;
   }
+
+  .transaction-template-area {
+    grid-template-areas: "icon description amount" "icon category timestamp";
+    grid-template-columns: auto 1fr auto;
+    place-items: center normal;
+  }
+
+  @screen md {
+    .transaction-template-area {
+      grid-template-areas: "icon description amount category timestamp";
+      grid-template-columns: auto 3fr 1fr 1fr 1fr;
+    }
+  }
 }

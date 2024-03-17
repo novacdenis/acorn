@@ -103,7 +103,7 @@ const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
 
 export interface MetricTrendProps extends Omit<VisualizationProps, "width"> {}
 
-export const MetricTrend: React.FC<MetricTrendProps> = ({ ...props }) => {
+const MetricTrend: React.FC<MetricTrendProps> = ({ ...props }) => {
   return (
     <ParentSize
       debounceTime={10}
@@ -113,3 +113,5 @@ export const MetricTrend: React.FC<MetricTrendProps> = ({ ...props }) => {
     </ParentSize>
   );
 };
+
+export { MetricTrend };

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cn } from "@/utils";
 
-export const Spinner = React.forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
+const Spinner = React.forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
   ({ className, ...props }, ref) => {
     return (
       <svg
@@ -32,3 +32,5 @@ export const Spinner = React.forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElem
   }
 );
 Spinner.displayName = "Spinner";
+
+export { Spinner };

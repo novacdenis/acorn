@@ -1,3 +1,5 @@
+export type Bank = "vb" | "maib";
+
 export interface ExtractedTransaction {
   data: {
     description: string;

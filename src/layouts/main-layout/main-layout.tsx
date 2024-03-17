@@ -29,9 +29,9 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
             <MainLayoutNotifications />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Avatar className="h-8 w-8 cursor-pointer">
+                <Avatar className="h-8 w-8 cursor-pointer" tabIndex={0}>
                   <AvatarImage src="https://github.com/novacdenis.png" alt="@novacdenis" />
-                  <AvatarFallback>ND</AvatarFallback>
+                  <AvatarFallback className="text-xs">ND</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">

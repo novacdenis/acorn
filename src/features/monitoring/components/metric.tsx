@@ -23,25 +23,29 @@ const Metric = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElem
 Metric.displayName = "Metric";
 
 const MetricTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, style, ...props }, ref) => (
+  ({ className, style, children, ...props }, ref) => (
     <h3
       ref={ref}
       className={cn("text-sm font-medium text-primary/90 md:text-base", className)}
       style={{ gridArea: "title", ...style }}
       {...props}
-    />
+    >
+      {children}
+    </h3>
   )
 );
 MetricTitle.displayName = "MetricTitle";
 
 const MetricValue = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, style, ...props }, ref) => (
+  ({ className, style, children, ...props }, ref) => (
     <h4
       ref={ref}
       className={cn("text-xl font-bold text-primary md:text-2xl", className)}
       style={{ gridArea: "value", ...style }}
       {...props}
-    />
+    >
+      {children}
+    </h4>
   )
 );
 MetricValue.displayName = "MetricValue";

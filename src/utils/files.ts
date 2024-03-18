@@ -2,14 +2,14 @@ import { round } from "./formatters";
 
 type Unit = "Bytes" | "KB" | "MB" | "GB" | "TB";
 
-export const validateFile = (
+export function validateFile(
   file: File,
   options: {
     /** The max file size in Bytes. */
     size?: number;
     extensions?: string[];
   }
-) => {
+) {
   const f = bytesToSize;
 
   if (options.size && file.size > options.size) {
@@ -25,22 +25,22 @@ export const validateFile = (
       )}. Current file extension is ${fileExtension}`;
     }
   }
-};
+}
 
-export const bytesToSize = (bytes: number) => {
+export function bytesToSize(bytes: number) {
   if (bytes === 0) return "0 Bytes";
 
   const units: Unit[] = ["Bytes", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
 
   return `${round(bytes / Math.pow(1024, i))} ${units[i < 0 ? 0 : i]}`;
-};
+}
 
-export const sizeToBytes = (size: number, unit: Unit) => {
+export function sizeToBytes(size: number, unit: Unit) {
   if (unit === "Bytes") return size;
 
   const units: Unit[] = ["Bytes", "KB", "MB", "GB", "TB"];
   const i = units.indexOf(unit);
 
   return size * Math.pow(1024, i);
-};
+}

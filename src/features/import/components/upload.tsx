@@ -4,6 +4,7 @@ import type { Bank } from "../types";
 import React from "react";
 import { ArrowUpIcon } from "@heroicons/react/16/solid";
 import { CloudArrowUpIcon } from "@heroicons/react/24/outline";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { validateFile } from "@/utils";
 import { BANK_OPTIONS } from "../constants";
 import { VBHtmlParser } from "../utils";
 
@@ -21,14 +23,24 @@ export const Upload: React.FC = () => {
     size: number;
     extensions: string[];
   } | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
 
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const onUpload = async (bank: Bank, file: File) => {
+    const error = validateFile(file, {
+      size: constraints?.size,
+      extensions: constraints?.extensions,
+    });
+
+    if (error) {
+      return toast.error(error);
+    }
+
     try {
-      const html = await file.text();
-      const parser = new VBHtmlParser(html);
-      const transactions = parser.parse();
+      // const html = await file.text();
+      // const parser = new VBHtmlParser(html);
+      // const transactions = parser.parse();
     } catch (error) {
       console.error(error);
     }
@@ -88,6 +100,7 @@ export const Upload: React.FC = () => {
             <CloudArrowUpIcon className="h-5 w-5" />
             <span className="ml-2">Select a file</span>
           </Button>
+          {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
         </div>
       </div>
 

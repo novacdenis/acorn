@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { LoginForm } from "@/features/auth/components";
 

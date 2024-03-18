@@ -1,4 +1,5 @@
 import type { Bank } from "../types";
+
 import { sizeToBytes } from "@/utils/files";
 
 export const BANK_OPTIONS: {

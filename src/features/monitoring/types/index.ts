@@ -10,7 +10,7 @@ export interface Expense extends Record<Category, number> {
   total: number;
 }
 
-export interface TransactionInterface {
+export interface Transaction {
   id: string;
   description: string;
   amount: number;

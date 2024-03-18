@@ -1,4 +1,5 @@
 import { type NextRequest } from "next/server";
+
 import { updateSession } from "./lib/supabase/middleware";
 
 function assignPathname(request: NextRequest) {

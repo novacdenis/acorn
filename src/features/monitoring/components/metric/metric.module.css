@@ -1,0 +1,4 @@
+.area {
+  grid-template-areas: "title title" "value delta" "description description";
+  grid-template-columns: auto 1fr;
+}

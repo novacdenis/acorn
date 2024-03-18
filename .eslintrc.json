@@ -20,16 +20,22 @@
     "import/order": [
       "warn",
       {
-        "groups": ["type", ["builtin", "external"], "internal", ["parent", "sibling"], "index"],
+        "groups": ["type", ["builtin", "external", "internal"], ["parent", "sibling", "index"]],
         "pathGroups": [
           {
             "pattern": "{next/**,react,react-dom/**}",
-            "group": "external",
+            "group": "builtin",
             "position": "before"
+          },
+          {
+            "pattern": "@/!(types)/**",
+            "group": "internal",
+            "position": "after"
           }
         ],
+        "distinctGroup": false,
         "pathGroupsExcludedImportTypes": ["next", "react", "react-dom"],
-        "newlines-between": "never",
+        "newlines-between": "always",
         "alphabetize": {
           "order": "asc",
           "caseInsensitive": true
@@ -37,5 +43,4 @@
       }
     ]
   }
-  // "files": ["*.ts", "*.tsx", "*.js", "*.jsx", "*.msj"]
 }

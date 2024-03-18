@@ -1,7 +1,9 @@
 "use client";
 
 import type { Bank } from "../types";
+
 import React from "react";
+import { validateFile } from "@/utils";
 import { ArrowUpIcon } from "@heroicons/react/16/solid";
 import { CloudArrowUpIcon } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
@@ -13,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { validateFile } from "@/utils";
+
 import { BANK_OPTIONS } from "../constants";
 import { VBHtmlParser } from "../utils";
 

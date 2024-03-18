@@ -1,4 +1,5 @@
 import type { Database } from "@/types";
+
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 

@@ -1,4 +1,5 @@
 import type { ExtractedTransaction } from "../types";
+
 import DOMPurify from "dompurify";
 
 export class VBHtmlParser {

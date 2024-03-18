@@ -1,4 +1,5 @@
 import Image from "next/image";
+
 import LayoutChart from "./auth-layout-chart";
 
 export const AuthLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {

@@ -1,6 +1,7 @@
 "use client";
 
-import type { Trend } from "../types";
+import type { Trend } from "../../types";
+
 import React from "react";
 import { curveMonotoneX } from "@visx/curve";
 import { Group } from "@visx/group";
@@ -9,12 +10,12 @@ import { scaleLinear, scaleTime } from "@visx/scale";
 import { AreaClosed } from "@visx/shape";
 import { motion } from "framer-motion";
 
-interface VisualizationProps {
+interface ChartProps {
   width: number;
   data: Trend[];
 }
 
-const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
+const Chart: React.FC<ChartProps> = ({ width, data }) => {
   const [height, setHeight] = React.useState(30);
   const [margin, setMargin] = React.useState({
     top: 5,
@@ -101,15 +102,15 @@ const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
   );
 };
 
-export interface MetricTrendProps extends Omit<VisualizationProps, "width"> {}
+export interface MetricTrendProps extends Omit<ChartProps, "width"> {}
 
 const MetricTrend: React.FC<MetricTrendProps> = ({ ...props }) => {
   return (
     <ParentSize
       debounceTime={10}
-      className="trend pointer-events-none absolute bottom-0 left-0 flex items-end overflow-hidden rounded-[inherit]"
+      className="pointer-events-none absolute bottom-0 left-0 flex items-end overflow-hidden rounded-[inherit]"
     >
-      {({ width }) => <Visualization width={width} {...props} />}
+      {({ width }) => <Chart width={width} {...props} />}
     </ParentSize>
   );
 };

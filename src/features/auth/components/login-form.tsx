@@ -1,10 +1,12 @@
 "use client";
 
 import type { Provider } from "../types";
+
 import { useSearchParams } from "next/navigation";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+
 import { signInWithGithub, signInWithGoogle } from "../actions";
 
 const icons: Record<Provider, React.JSX.Element> = {

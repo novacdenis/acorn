@@ -1,6 +1,7 @@
 "use client";
 
-import type { Category, Expense } from "../types";
+import type { Category, Expense } from "../../types";
+
 import React from "react";
 import { AxisLeft, AxisBottom } from "@visx/axis";
 import { Group } from "@visx/group";

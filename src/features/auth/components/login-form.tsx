@@ -53,7 +53,7 @@ export const LoginForm: React.FC = () => {
       <Button
         variant="outline"
         size="lg"
-        className="relative h-14 w-full"
+        className="relative h-14 w-full rounded-2xl"
         disabled={isPending}
         onClick={signInWithGithubHandler}
       >
@@ -69,7 +69,7 @@ export const LoginForm: React.FC = () => {
       <Button
         variant="outline"
         size="lg"
-        className="relative h-14 w-full"
+        className="relative h-14 w-full rounded-2xl"
         disabled={isPending}
         onClick={signInWithGoogleHandler}
       >

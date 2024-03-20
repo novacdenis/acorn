@@ -1,5 +1,8 @@
+import type { Theme } from "@/types";
 import type { Metadata } from "next";
 
+import { cookies } from "next/headers";
+import { ThemeProvider } from "@/providers";
 import { cn } from "@/utils";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistMono } from "geist/font/mono";
@@ -17,11 +20,14 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = cookies().get("user_theme")?.value as Theme;
+  const resolvedTheme = theme ?? "dark";
+
   return (
     <html
       lang="en"
-      className={cn(GeistSans.variable, GeistMono.variable, "dark")}
-      style={{ colorScheme: "dark" }}
+      className={cn(GeistSans.variable, GeistMono.variable, resolvedTheme)}
+      style={{ colorScheme: resolvedTheme }}
     >
       <head>
         <link rel="apple-touch-icon" sizes="180x180" href="/manifest/apple-touch-icon.png" />
@@ -33,8 +39,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="background-color" media="(prefers-color-scheme: light)" content="white" />
         <meta name="background-color" media="(prefers-color-scheme: dark)" content="black" />
       </head>
-      <body className="dark">
-        {children}
+      <body>
+        <ThemeProvider defaultTheme={resolvedTheme}>{children}</ThemeProvider>
         <Toaster />
         <SpeedInsights />
       </body>

@@ -6,7 +6,7 @@ import { Group } from "@visx/group";
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear, scaleTime } from "@visx/scale";
 import { AreaClosed } from "@visx/shape";
-import { motion } from "framer-motion";
+import { motion, useWillChange } from "framer-motion";
 
 const data = [
   { timestamp: 1609459200000, amount: 16.471406461787012 },
@@ -31,11 +31,13 @@ const yScale = scaleLinear<number>({
   domain: [0, Math.max(...data.map((h) => h.amount))],
 });
 
-interface VisualizationProps {
+interface ChartProps {
   width: number;
 }
 
-const Visualization: React.FC<VisualizationProps> = ({ width }) => {
+const Chart: React.FC<ChartProps> = ({ width }) => {
+  const willChange = useWillChange();
+
   const [height, setHeight] = React.useState(0);
   const [margin] = React.useState({
     top: 0,
@@ -59,8 +61,10 @@ const Visualization: React.FC<VisualizationProps> = ({ width }) => {
       width={width}
       height={height}
       viewBox={`0 0 ${width} ${height}`}
+      style={{ willChange }}
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
+      transition={{ delay: 0.5, bounce: 0.25, mass: 0.5, damping: 10 }}
     >
       <defs>
         <linearGradient id="layout-chart-area-gradient" x1="0" x2="0" y1="0" y2="1">
@@ -88,17 +92,25 @@ const Visualization: React.FC<VisualizationProps> = ({ width }) => {
   );
 };
 
-export interface AuthLayoutChartProps extends Omit<VisualizationProps, "width"> {}
+export const AuthLayoutBackground: React.FC = () => {
+  const willChange = useWillChange();
 
-export const AuthLayoutChart: React.FC<AuthLayoutChartProps> = ({ ...props }) => {
   return (
-    <ParentSize
-      debounceTime={10}
-      className="pointer-events-none absolute bottom-0 left-0 flex items-end overflow-hidden rounded-[inherit]"
-    >
-      {({ width }) => <Visualization width={width} {...props} />}
-    </ParentSize>
+    <>
+      <motion.div
+        aria-hidden="true"
+        className="bg-grid pointer-events-none fixed inset-0"
+        style={{ willChange }}
+        initial={{ opacity: 0.1, y: 50, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, bounce: 0 }}
+      />
+      <ParentSize
+        debounceTime={10}
+        className="pointer-events-none fixed inset-0 z-10 flex items-end overflow-hidden rounded-[inherit]"
+      >
+        {({ width }) => <Chart width={width} />}
+      </ParentSize>
+    </>
   );
 };
-
-export default AuthLayoutChart;

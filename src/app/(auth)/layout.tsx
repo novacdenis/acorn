@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { AuthLayout } from "@/features/auth";
+import { AuthLayout } from "@/layouts";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function Layout({ children }: { children: React.ReactNode }) {

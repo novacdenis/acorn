@@ -1,5 +1,7 @@
 "use server";
 
+import type { Theme } from "@/types";
+
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -56,4 +58,12 @@ export async function signOut() {
   }
 
   redirect("/login");
+}
+
+export async function setUserTheme(theme: Theme) {
+  cookies().set("user_theme", theme, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    httpOnly: true,
+  });
 }

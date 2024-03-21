@@ -10,13 +10,10 @@ import { ParentSize } from "@visx/responsive";
 import { scaleBand, scaleLinear, scaleOrdinal } from "@visx/scale";
 import { BarStack } from "@visx/shape";
 import { Text } from "@visx/text";
+import { format } from "date-fns";
 
 const numberFormatter = new Intl.NumberFormat("ro-MD", {
   notation: "compact",
-});
-
-const dateFormatter = new Intl.DateTimeFormat("ro-MD", {
-  month: "narrow",
 });
 
 const colors = {
@@ -35,7 +32,7 @@ interface VisualizationProps {
 const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
 
-  const [height] = React.useState(320);
+  const [height] = React.useState(384);
   const [margin, setMargin] = React.useState({
     top: 15,
     right: 0,
@@ -114,7 +111,7 @@ const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
             top={innerHeight}
             axisLineClassName="stroke-muted-foreground"
             tickLineProps={{ className: "stroke-muted-foreground" }}
-            tickFormat={(value) => dateFormatter.format(value.valueOf())}
+            tickFormat={(value) => format(value.valueOf(), "MMMMM")}
             tickComponent={({ formattedValue, ...rest }) => (
               <Text
                 {...rest}

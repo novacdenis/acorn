@@ -6,9 +6,8 @@ import { MetricTrend } from "./metric-trend";
 import styles from "./metric.module.css";
 
 const valueFormatter = new Intl.NumberFormat("ro-MD", {
-  style: "currency",
-  currency: "MDL",
   minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
 });
 
 const deltaFormatter = new Intl.NumberFormat("ro-MD", {
@@ -41,7 +40,7 @@ export const Metric: React.FC<MetricProps> = ({ title, value, delta, deltaSign, 
         {title}
       </h3>
       <h4 className="text-xl font-bold text-primary md:text-2xl" style={{ gridArea: "value" }}>
-        {valueFormatter.format(value)}
+        {valueFormatter.format(value)} MDL
       </h4>
       <p
         className={cn(

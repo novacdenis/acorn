@@ -4,22 +4,13 @@ import type { Transaction } from "../../types";
 
 import Image from "next/image";
 import { cn } from "@/utils";
+import { format } from "date-fns";
 
 import styles from "./row.module.css";
 
 const amountFormatter = new Intl.NumberFormat("ro-MD", {
-  style: "currency",
-  currency: "MDL",
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
-});
-
-const timestampFormatter = new Intl.DateTimeFormat("ro-MD", {
-  year: "numeric",
-  month: "short",
-  day: "numeric",
-  hour: "numeric",
-  minute: "numeric",
 });
 
 export interface RowProps {
@@ -62,9 +53,12 @@ export const Row: React.FC<RowProps> = ({ transaction, onClick }) => {
         <span className="ml-1 block truncate">{transaction.description}</span>
       </h3>
       <p className="justify-self-end text-sm md:justify-self-start" style={{ gridArea: "amount" }}>
-        {amountFormatter.format(transaction.amount)}
+        {amountFormatter.format(transaction.amount)} MDL
       </p>
-      <p className="text-sm text-muted-foreground md:text-primary" style={{ gridArea: "category" }}>
+      <p
+        className="truncate text-sm text-muted-foreground md:text-primary"
+        style={{ gridArea: "category" }}
+      >
         {transaction.category}
       </p>
       <time
@@ -72,7 +66,7 @@ export const Row: React.FC<RowProps> = ({ transaction, onClick }) => {
         style={{ gridArea: "timestamp" }}
         dateTime={new Date(transaction.timestamp).toString()}
       >
-        {timestampFormatter.format(transaction.timestamp)}
+        {format(transaction.timestamp, "MMM d, yyyy, HH:mm")}
       </time>
     </li>
   );

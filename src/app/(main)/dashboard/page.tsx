@@ -30,8 +30,8 @@ export const metadata: Metadata = {
 
 export default function DashboardPage() {
   return (
-    <>
-      <Section className="mt-0 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="space-y-6">
+      <Section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
         <Metric
           title="Total spent"
           value={1000}
@@ -108,6 +108,6 @@ export default function DashboardPage() {
           />
         </SectionContent>
       </Section>
-    </>
+    </div>
   );
 }

@@ -6,6 +6,7 @@
     ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
     ["cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
   ],
+  "tailwindCSS.classAttributes": ["class", "className", "ngClass", "classNames"],
   "css.lint.unknownAtRules": "ignore",
   "cSpell.words": [
     "clsx",

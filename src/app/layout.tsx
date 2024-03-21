@@ -8,6 +8,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import { Toaster } from "@/components/ui/sonner";
+import { SessionRefresher } from "@/features/auth";
 
 import "@/styles/index.css";
 
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <ThemeProvider defaultTheme={resolvedTheme}>{children}</ThemeProvider>
+        <SessionRefresher />
         <Toaster />
         <SpeedInsights />
       </body>

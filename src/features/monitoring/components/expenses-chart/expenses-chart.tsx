@@ -3,14 +3,13 @@
 import type { Category, Expense } from "../../types";
 
 import React from "react";
+import { useMediaQuery } from "@/hooks";
 import { AxisLeft, AxisBottom } from "@visx/axis";
 import { Group } from "@visx/group";
 import { ParentSize } from "@visx/responsive";
 import { scaleBand, scaleLinear, scaleOrdinal } from "@visx/scale";
 import { BarStack } from "@visx/shape";
 import { Text } from "@visx/text";
-
-const query = "(max-width: 768px)";
 
 const numberFormatter = new Intl.NumberFormat("ro-MD", {
   notation: "compact",
@@ -34,7 +33,9 @@ interface VisualizationProps {
 }
 
 const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
-  const [height, setHeight] = React.useState(320);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  const [height] = React.useState(320);
   const [margin, setMargin] = React.useState({
     top: 15,
     right: 0,
@@ -70,22 +71,11 @@ const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
   }, []);
 
   React.useEffect(() => {
-    const media = window.matchMedia(query);
-    const onResize = () => {
-      setHeight(media.matches ? 320 : 384);
-      setMargin((prev) => ({
-        ...prev,
-        left: media.matches ? 40 : 45,
-      }));
-    };
-
-    media.addEventListener("change", onResize);
-    onResize();
-
-    return () => {
-      media.removeEventListener("change", onResize);
-    };
-  }, []);
+    setMargin((prev) => ({
+      ...prev,
+      left: isMobile ? 40 : 45,
+    }));
+  }, [isMobile]);
 
   return (
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>

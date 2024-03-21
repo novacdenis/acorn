@@ -3,6 +3,7 @@
 import type { Trend } from "../../types";
 
 import React from "react";
+import { useMediaQuery } from "@/hooks";
 import { curveMonotoneX } from "@visx/curve";
 import { Group } from "@visx/group";
 import { ParentSize } from "@visx/responsive";
@@ -16,6 +17,8 @@ interface ChartProps {
 }
 
 const Chart: React.FC<ChartProps> = ({ width, data }) => {
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
   const [height, setHeight] = React.useState(30);
   const [margin, setMargin] = React.useState({
     top: 5,
@@ -49,24 +52,12 @@ const Chart: React.FC<ChartProps> = ({ width, data }) => {
   yScale.range([innerHeight, 0]);
 
   React.useEffect(() => {
-    const media = window.matchMedia("(max-width: 768px)");
-    const onResize = () => {
-      setHeight(media.matches ? 30 : 50);
-      setMargin({
-        top: media.matches ? 5 : 10,
-        right: -2,
-        bottom: -2,
-        left: -2,
-      });
-    };
-
-    media.addEventListener("change", onResize);
-    onResize();
-
-    return () => {
-      media.removeEventListener("change", onResize);
-    };
-  }, []);
+    setHeight(isMobile ? 30 : 50);
+    setMargin((prev) => ({
+      ...prev,
+      top: isMobile ? 5 : 10,
+    }));
+  }, [isMobile]);
 
   return (
     <motion.svg

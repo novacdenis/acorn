@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+
 import { fontFamily } from "tailwindcss/defaultTheme";
 
 const config = {
@@ -13,7 +14,7 @@ const config = {
   theme: {
     container: {
       center: true,
-      padding: "1.5rem",
+      padding: "1.25rem",
       screens: {
         "2xl": "1400px",
       },

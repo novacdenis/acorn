@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/utils";
 import { Drawer as DrawerPrimitive } from "vaul";
+import { cn } from "@/utils";
 
 const Drawer = ({
   shouldScaleBackground = true,
@@ -39,25 +39,27 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+        "fixed inset-x-0 bottom-0 z-50 flex h-auto max-h-[96%] flex-col rounded-t-[10px] border-t bg-background",
         className
       )}
       {...props}
     >
-      <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
-      {children}
+      <div className="mx-auto my-4 h-2 w-[100px] shrink-0 rounded-full bg-muted" />
+      <div className="flex flex-1 flex-col gap-4 overflow-y-auto rounded-t-[10px] px-4 pb-4">
+        {children}
+      </div>
     </DrawerPrimitive.Content>
   </DrawerPortal>
 ));
 DrawerContent.displayName = "DrawerContent";
 
 const DrawerHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)} {...props} />
+  <div className={cn("flex flex-col gap-1.5", className)} {...props} />
 );
 DrawerHeader.displayName = "DrawerHeader";
 
 const DrawerFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("mt-auto flex flex-col gap-2 p-4", className)} {...props} />
+  <div className={cn("flex items-center justify-end gap-2", className)} {...props} />
 );
 DrawerFooter.displayName = "DrawerFooter";
 

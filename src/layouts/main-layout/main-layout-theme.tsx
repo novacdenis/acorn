@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { useTheme } from "@/providers";
 import { SunIcon } from "@heroicons/react/16/solid";
 import { DropdownMenuItem, DropdownMenuShortcut } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
+import { useTheme } from "@/providers";
 
 export const MainLayoutTheme: React.FC = () => {
   const { theme, toggleTheme } = useTheme();

@@ -2,13 +2,13 @@ import type { Theme } from "@/types";
 import type { Metadata } from "next";
 
 import { cookies } from "next/headers";
-import { ThemeProvider } from "@/providers";
-import { cn } from "@/utils";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionRefresher } from "@/features/auth";
+import { ThemeProvider } from "@/providers";
+import { cn } from "@/utils";
 
 import "@/styles/index.css";
 

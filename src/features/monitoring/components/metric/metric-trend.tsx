@@ -3,13 +3,13 @@
 import type { Trend } from "../../types";
 
 import React from "react";
-import { useMediaQuery } from "@/hooks";
 import { curveMonotoneX } from "@visx/curve";
 import { Group } from "@visx/group";
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear, scaleTime } from "@visx/scale";
 import { AreaClosed } from "@visx/shape";
 import { motion } from "framer-motion";
+import { useMediaQuery } from "@/hooks";
 
 interface ChartProps {
   width: number;

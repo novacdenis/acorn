@@ -3,7 +3,6 @@
 import type { Category, Expense } from "../../types";
 
 import React from "react";
-import { useMediaQuery } from "@/hooks";
 import { AxisLeft, AxisBottom } from "@visx/axis";
 import { Group } from "@visx/group";
 import { ParentSize } from "@visx/responsive";
@@ -11,6 +10,7 @@ import { scaleBand, scaleLinear, scaleOrdinal } from "@visx/scale";
 import { BarStack } from "@visx/shape";
 import { Text } from "@visx/text";
 import { format } from "date-fns";
+import { useMediaQuery } from "@/hooks";
 
 const numberFormatter = new Intl.NumberFormat("ro-MD", {
   notation: "compact",

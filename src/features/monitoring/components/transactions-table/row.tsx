@@ -3,8 +3,8 @@
 import type { Transaction } from "../../types";
 
 import Image from "next/image";
-import { cn } from "@/utils";
 import { format } from "date-fns";
+import { cn } from "@/utils";
 
 import styles from "./row.module.css";
 

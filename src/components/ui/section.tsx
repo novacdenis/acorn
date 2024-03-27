@@ -62,7 +62,7 @@ export interface SectionContentProps extends React.HTMLAttributes<HTMLDivElement
 const SectionContent = React.forwardRef<HTMLDivElement, SectionContentProps>(
   ({ className, children, ...props }, ref) => {
     return (
-      <div ref={ref} className={cn("mt-6", className)} {...props}>
+      <div ref={ref} className={cn("mt-5", className)} {...props}>
         {children}
       </div>
     );
@@ -75,7 +75,7 @@ export interface SectionFooterProps extends React.HTMLAttributes<HTMLElement> {}
 const SectionFooter = React.forwardRef<HTMLElement, SectionFooterProps>(
   ({ className, children, ...props }, ref) => {
     return (
-      <footer ref={ref} className={cn("mt-6", className)} {...props}>
+      <footer ref={ref} className={cn("mt-5", className)} {...props}>
         {children}
       </footer>
     );

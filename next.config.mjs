@@ -1,13 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async redirects() {
-    return [
-      {
-        source: "/",
-        destination: "/dashboard",
-        permanent: process.env.NODE_ENV !== "production",
-      },
-    ];
+  async rewrites() {
+    return [{ source: "/", destination: "/dashboard" }];
   },
   images: {
     remotePatterns: [{ hostname: "avatars.githubusercontent.com" }],

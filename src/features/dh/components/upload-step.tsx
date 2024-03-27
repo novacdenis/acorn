@@ -1,0 +1,303 @@
+import type { Bank, ExtractedTransaction } from "../types";
+
+import React from "react";
+import { ArrowUpIcon } from "@heroicons/react/20/solid";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { bytesToSize, cn, validateFile } from "@/utils";
+
+import { useImportDialogContext, useImportDialogStore } from "./import-dialog";
+import { UploadStepFile } from "./upload-step-file";
+import { BANK_OPTIONS } from "../constants";
+import { VBHtmlParser } from "../utils";
+
+interface ProcessedFilePendingStatus {
+  status: "pending";
+}
+
+interface ProcessedFileDoneStatus {
+  status: "done";
+  transactions: ExtractedTransaction[];
+}
+
+interface ProcessedFileErrorStatus {
+  status: "error";
+  error: string;
+}
+
+interface ProcessedFileBase {
+  uid: string;
+  name: string;
+  extension: string;
+  size: number;
+  originalFile: File;
+  bank: Bank;
+}
+type ProcessedFileStatus =
+  | ProcessedFilePendingStatus
+  | ProcessedFileDoneStatus
+  | ProcessedFileErrorStatus;
+
+export type ProcessedFile = ProcessedFileBase & ProcessedFileStatus;
+
+const processFiles = (files: File[], config: { bank: Bank }) => {
+  const processedFiles: ProcessedFile[] = [];
+
+  for (const file of files) {
+    const constraints = BANK_OPTIONS[config.bank];
+    const error = validateFile(file, {
+      extensions: constraints?.extensions,
+      size: constraints?.size,
+    });
+
+    processedFiles.push({
+      uid: Math.random().toString(36).substring(2, 9),
+      name: file.name.split(".").slice(0, -1).join("."),
+      extension: file.name.split(".").pop() || "",
+      size: file.size,
+      originalFile: file,
+      bank: config.bank,
+      ...(error ? { status: "error", error } : { status: "pending" }),
+    });
+  }
+
+  return processedFiles;
+};
+
+const extractTransactions = async (file: ProcessedFile) => {
+  try {
+    const text = await file.originalFile.text();
+    const parser = { vb: new VBHtmlParser(text) }[file.bank];
+    const transactions = parser.parse();
+
+    if (transactions.length === 0) {
+      throw new Error("No transactions found in the file.");
+    }
+
+    return { data: transactions, error: null };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { data: null, error: error.message };
+    }
+
+    return { data: null, error: "Something went wrong while reading the file." };
+  }
+};
+
+export const UploadStep: React.FC = () => {
+  const { setIsOpen } = useImportDialogStore((store) => ({ setIsOpen: store.setIsOpen }));
+  const { isMobile, onStartImport } = useImportDialogContext();
+
+  const [bank, setBank] = React.useState<Bank>();
+  const [files, setFiles] = React.useState<ProcessedFile[]>([]);
+  const [isDragging, setIsDragging] = React.useState(false);
+
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const constraints = bank && BANK_OPTIONS[bank];
+
+  const updateFile = (uid: string, status: ProcessedFileStatus) => {
+    setFiles((prev) =>
+      prev.map((f) => {
+        if (f.uid === uid) {
+          const base: ProcessedFileBase = {
+            uid: f.uid,
+            name: f.name,
+            extension: f.extension,
+            size: f.size,
+            originalFile: f.originalFile,
+            bank: f.bank,
+          };
+
+          return { ...base, ...status };
+        }
+
+        return f;
+      })
+    );
+  };
+
+  const removeFile = (uid: string) => {
+    setFiles((prev) => prev.filter((f) => f.uid !== uid));
+  };
+
+  const extractNewFilesTransactions = async (newFiles: ProcessedFile[]) => {
+    for (const newFile of newFiles) {
+      const result = await extractTransactions(newFile);
+
+      if (result.data) {
+        updateFile(newFile.uid, { status: "done", transactions: result.data });
+      } else {
+        updateFile(newFile.uid, { status: "error", error: result.error });
+      }
+    }
+  };
+
+  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (bank && e.target.files?.length) {
+      const newProcessedFiles = processFiles(Array.from(e.target.files), { bank });
+      setFiles([...newProcessedFiles, ...files]);
+      extractNewFilesTransactions(newProcessedFiles.filter((f) => f.status === "pending"));
+    }
+    e.target.value = "";
+  };
+
+  const onDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    if (bank && e.dataTransfer.files?.length) {
+      const newProcessedFiles = processFiles(Array.from(e.dataTransfer.files), { bank });
+      setFiles([...newProcessedFiles, ...files]);
+      extractNewFilesTransactions(newProcessedFiles.filter((f) => f.status === "pending"));
+    }
+  };
+
+  const onContinue = async () => {
+    onStartImport(files.flatMap((file) => (file.status === "done" ? file.transactions : [])));
+  };
+
+  const Header = isMobile ? DrawerHeader : DialogHeader;
+  const Title = isMobile ? DrawerTitle : DialogTitle;
+  const Description = isMobile ? DrawerDescription : DialogDescription;
+  const Footer = isMobile ? DrawerFooter : DialogFooter;
+
+  const areFilesInPendingState = files.some((f) => f.status === "pending");
+
+  const isUploadEnabled = !!bank && !areFilesInPendingState;
+  const isCancelEnabled = !areFilesInPendingState;
+  const isContinueEnabled = !areFilesInPendingState && files.some((f) => f.status === "done");
+
+  return (
+    <>
+      <Header>
+        <Title>Import transactions</Title>
+        <Description>
+          Choose your bank and drag/drop or click to upload your transactions.
+        </Description>
+      </Header>
+
+      <Select value={bank} onValueChange={(v) => setBank(v as Bank)}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select a bank" />
+        </SelectTrigger>
+        <SelectContent>
+          {Object.values(BANK_OPTIONS).map((option) => (
+            <SelectItem
+              key={option.id}
+              value={option.id}
+              textValue={option.label}
+              disabled={option.disabled}
+            >
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <div
+        role="button"
+        tabIndex={isUploadEnabled ? 0 : -1}
+        className={cn(
+          "rounded-2xl border-2 border-dashed border-primary/10 py-5 transition-colors",
+          {
+            "cursor-not-allowed opacity-75": !isUploadEnabled,
+            "border-primary/15 bg-primary/5": isDragging,
+          }
+        )}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onDragEnter={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (isUploadEnabled) {
+            setIsDragging(true);
+          }
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (isUploadEnabled) {
+            setIsDragging(false);
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (isUploadEnabled) {
+            setIsDragging(false);
+            onDrop(e);
+          } else {
+            toast.error("Please select a bank first");
+          }
+        }}
+        onClick={() => {
+          if (isUploadEnabled) {
+            inputRef.current?.click();
+          } else {
+            toast.error("Please select a bank first");
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            if (isUploadEnabled) {
+              inputRef.current?.click();
+            } else {
+              toast.error("Please select a bank first");
+            }
+          }
+        }}
+      >
+        <div className="pointer-events-none flex flex-col items-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary shadow-md">
+              <ArrowUpIcon className="h-8 w-8 text-background" />
+            </div>
+          </div>
+          <h3 className="mt-2 text-center text-sm">
+            <span className="underline">Click to upload</span> or drag and drop
+          </h3>
+          <p className="mt-0.5 text-center text-xs">
+            <span className="text-primary">Max file size:</span>
+            <span className="ml-1 text-muted-foreground">
+              {bytesToSize(constraints?.size || 0)}
+            </span>
+          </p>
+        </div>
+      </div>
+
+      {!!files.length && (
+        <ul className="space-y-2">
+          {files.map((file) => (
+            <UploadStepFile key={file.uid} file={file} onRemove={() => removeFile(file.uid)} />
+          ))}
+        </ul>
+      )}
+
+      <Footer>
+        <Button variant="ghost" disabled={!isCancelEnabled} onClick={() => setIsOpen(false)}>
+          Cancel
+        </Button>
+        <Button disabled={!isContinueEnabled} onClick={onContinue}>
+          Continue
+        </Button>
+      </Footer>
+
+      <input
+        ref={inputRef}
+        multiple
+        type="file"
+        accept={constraints?.extensions.join(",")}
+        className="hidden"
+        onChange={onInputChange}
+      />
+    </>
+  );
+};

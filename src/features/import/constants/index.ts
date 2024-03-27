@@ -2,26 +2,28 @@ import type { Bank } from "../types";
 
 import { sizeToBytes } from "@/utils/files";
 
-export const BANK_OPTIONS: {
-  value: Bank;
-  label: string;
-  /** The max file size in Bytes. */
-  size: number;
-  extensions: string[];
-  disabled: boolean;
-}[] = [
+export const BANK_OPTIONS: Record<
+  Bank,
   {
-    value: "vb",
+    id: Bank;
+    label: string;
+    extensions: string[];
+    size: number;
+    disabled: boolean;
+  }
+> = {
+  vb: {
+    id: "vb",
     label: "Victoriabank",
     extensions: [".html"],
     size: sizeToBytes(5, "MB"),
     disabled: false,
   },
-  {
-    value: "maib",
+  maib: {
+    id: "maib",
     label: "MAIB (coming soon)",
     extensions: [".csv"],
     size: sizeToBytes(5, "MB"),
     disabled: true,
   },
-];
+};

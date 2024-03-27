@@ -18,8 +18,10 @@
     "sonner",
     "supabase",
     "tailwindcss",
+    "uids",
     "valibot",
     "victoriabank",
-    "visx"
+    "visx",
+    "zustand"
   ]
 }

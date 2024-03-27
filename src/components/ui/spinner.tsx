@@ -1,8 +1,12 @@
 import * as React from "react";
 import { cn } from "@/utils";
 
-const Spinner = React.forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
-  ({ className, ...props }, ref) => {
+export interface SpinnerProps extends React.SVGProps<SVGSVGElement> {
+  variant?: "queued" | "running";
+}
+
+const Spinner = React.forwardRef<SVGSVGElement, SpinnerProps>(
+  ({ variant = "running", className, ...props }, ref) => {
     return (
       <svg
         ref={ref}
@@ -20,13 +24,15 @@ const Spinner = React.forwardRef<SVGSVGElement, React.SVGProps<SVGSVGElement>>(
           strokeWidth="2"
           vectorEffect="non-scaling-stroke"
         />
-        <path
-          d="M15 8a7.002 7.002 0 00-7-7"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          vectorEffect="non-scaling-stroke"
-        />
+        {variant === "running" && (
+          <path
+            d="M15 8a7.002 7.002 0 00-7-7"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        )}
       </svg>
     );
   }

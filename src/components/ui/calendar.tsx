@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { cn } from "@/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { DayPicker } from "react-day-picker";
 import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/utils";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
@@ -14,11 +14,11 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
-        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+        months: "flex flex-col sm:flex-row gap-4",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
         caption_label: "text-sm font-medium",
-        nav: "space-x-1 flex items-center",
+        nav: "gap-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
           "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100"

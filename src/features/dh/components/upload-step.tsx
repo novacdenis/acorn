@@ -1,7 +1,7 @@
-import type { Bank, ExtractedTransaction } from "../types";
-
 import React from "react";
+import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/16/solid";
 import { ArrowUpIcon } from "@heroicons/react/20/solid";
+import { TrashIcon } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,10 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Spinner } from "@/components/ui/spinner";
 import { bytesToSize, cn, validateFile } from "@/utils";
 
-import { useImportDialogContext, useImportDialogStore } from "./import-dialog";
-import { UploadStepFile } from "./upload-step-file";
+import {
+  useImportDialogContext,
+  useImportDialogStore,
+  type ExtractedTransaction,
+  type Bank,
+} from "./import-dialog";
 import { BANK_OPTIONS } from "../constants";
 import { VBHtmlParser } from "../utils";
 
@@ -34,7 +39,7 @@ interface ProcessedFileErrorStatus {
   error: string;
 }
 
-interface ProcessedFileBase {
+export interface ProcessedFileBase {
   uid: string;
   name: string;
   extension: string;
@@ -42,7 +47,8 @@ interface ProcessedFileBase {
   originalFile: File;
   bank: Bank;
 }
-type ProcessedFileStatus =
+
+export type ProcessedFileStatus =
   | ProcessedFilePendingStatus
   | ProcessedFileDoneStatus
   | ProcessedFileErrorStatus;
@@ -93,6 +99,71 @@ const extractTransactions = async (file: ProcessedFile) => {
   }
 };
 
+const countFormatter = new Intl.NumberFormat("ro-MD", {
+  notation: "compact",
+});
+
+interface UploadStepFileStatusProps {
+  file: ProcessedFile;
+}
+
+const UploadStepFileStatus: React.FC<UploadStepFileStatusProps> = ({ file }) => {
+  if (file.status === "error") {
+    return <p className="text-sm text-red-500">{file.error}</p>;
+  }
+
+  return (
+    <p className="text-sm font-medium text-muted-foreground">
+      <span>{bytesToSize(file.size)}</span>
+      <span className="mx-1 inline-block">•</span>
+      <span>
+        {file.status === "done"
+          ? `${countFormatter.format(file.transactions.length)} transactions`
+          : "Processing file..."}
+      </span>
+    </p>
+  );
+};
+
+interface FileProps {
+  file: ProcessedFile;
+  onRemove: () => void;
+}
+
+const File: React.FC<FileProps> = ({ file, onRemove }) => {
+  return (
+    <li
+      className={cn("rounded-xl bg-primary/5 p-3", {
+        "animate-pulse": file.status === "pending",
+      })}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1 overflow-hidden">
+          <div className="flex items-center">
+            {file.status === "pending" && <Spinner className="h-4 w-4" />}
+            {file.status === "done" && <CheckCircleIcon className="h-4 w-4" />}
+            {file.status === "error" && <XCircleIcon className="h-4 w-4" />}
+
+            <h3 className="ml-1.5 truncate">{file.name}</h3>
+            <h4 className="">.{file.extension}</h4>
+          </div>
+          <UploadStepFileStatus file={file} />
+        </div>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="ml-3"
+          disabled={file.status === "pending"}
+          onClick={onRemove}
+        >
+          <TrashIcon className="h-5 w-5" />
+        </Button>
+      </div>
+    </li>
+  );
+};
+
 export const UploadStep: React.FC = () => {
   const { setIsOpen } = useImportDialogStore((store) => ({ setIsOpen: store.setIsOpen }));
   const { isMobile, onStartImport } = useImportDialogContext();
@@ -131,13 +202,13 @@ export const UploadStep: React.FC = () => {
 
   const extractNewFilesTransactions = async (newFiles: ProcessedFile[]) => {
     for (const newFile of newFiles) {
-      const result = await extractTransactions(newFile);
-
-      if (result.data) {
-        updateFile(newFile.uid, { status: "done", transactions: result.data });
-      } else {
-        updateFile(newFile.uid, { status: "error", error: result.error });
-      }
+      extractTransactions(newFile).then((result) => {
+        if (result.data) {
+          updateFile(newFile.uid, { status: "done", transactions: result.data });
+        } else {
+          updateFile(newFile.uid, { status: "error", error: result.error });
+        }
+      });
     }
   };
 
@@ -276,13 +347,13 @@ export const UploadStep: React.FC = () => {
       {!!files.length && (
         <ul className="space-y-2">
           {files.map((file) => (
-            <UploadStepFile key={file.uid} file={file} onRemove={() => removeFile(file.uid)} />
+            <File key={file.uid} file={file} onRemove={() => removeFile(file.uid)} />
           ))}
         </ul>
       )}
 
       <Footer>
-        <Button variant="ghost" disabled={!isCancelEnabled} onClick={() => setIsOpen(false)}>
+        <Button variant="secondary" disabled={!isCancelEnabled} onClick={() => setIsOpen(false)}>
           Cancel
         </Button>
         <Button disabled={!isContinueEnabled} onClick={onContinue}>

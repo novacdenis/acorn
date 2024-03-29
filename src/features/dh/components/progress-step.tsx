@@ -9,38 +9,45 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Progress } from "@/components/ui/progress";
+import { getPercentageFromTotal } from "@/utils";
 
 import { useImportDialogContext } from "./import-dialog";
 
 export const ProgressStep: React.FC = () => {
-  const { isMobile, transactions, progress, onCancelImport } = useImportDialogContext();
+  const { isMobile, transactions, progress, onCancelImport, onFinishImport, onStartImportReview } =
+    useImportDialogContext();
+
+  const [isCancelAlertOpen, setIsCancelAlertOpen] = React.useState(false);
+  const [isDismissAlertOpen, setIsDismissAlertOpen] = React.useState(false);
 
   const Header = isMobile ? DrawerHeader : DialogHeader;
   const Title = isMobile ? DrawerTitle : DialogTitle;
   const Description = isMobile ? DrawerDescription : DialogDescription;
   const Footer = isMobile ? DrawerFooter : DialogFooter;
 
-  const percent = Math.round(((progress.imported + progress.failed) / progress.total) * 100);
+  const percentage = getPercentageFromTotal(progress.imported + progress.failed, progress.total);
   const title = React.useMemo(() => {
     if (progress.status === "idle") {
-      return "Preparing import";
+      return "Preparing import...";
     }
     if (progress.status === "loading") {
       return `Importing ${transactions.find((t) => t.status === "loading")?.data.description}`;
     }
+    if (progress.status === "cancelled") {
+      return "Import cancelled";
+    }
     if (progress.status === "done") {
       return "Import complete";
     }
-    if (progress.status === "pause") {
-      return "Import paused";
-    }
   }, [progress.status, transactions]);
+
+  const isInProgress = progress.status === "loading";
+  const isCompleted = progress.status === "cancelled" || progress.status === "done";
 
   return (
     <>
@@ -53,10 +60,10 @@ export const ProgressStep: React.FC = () => {
       </Header>
 
       <div className="overflow-hidden">
-        <Progress value={percent} />
-        <p className="mt-1 flex items-center justify-between text-sm font-medium text-muted-foreground">
+        <Progress value={percentage} />
+        <p className="mt-1 flex items-center justify-between px-0.5 text-xs font-medium text-muted-foreground">
           <span className="truncate">{title}</span>
-          <span className="ml-2">{percent}%</span>
+          <span className="ml-2">{percentage}%</span>
         </p>
       </div>
 
@@ -87,24 +94,65 @@ export const ProgressStep: React.FC = () => {
       </ul>
 
       <Footer>
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive">Cancel</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Cancel imported</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to cancel the import? This will skip t
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Dismiss</AlertDialogCancel>
-              <AlertDialogAction onClick={onCancelImport}>Yes, cancel</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {isInProgress && (
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={() => setIsCancelAlertOpen(true)}
+          >
+            Cancel import
+          </Button>
+        )}
+
+        {isCompleted && (
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                if (progress.failed > 0) setIsDismissAlertOpen(true);
+                else onFinishImport();
+              }}
+            >
+              Dismiss
+            </Button>
+            {progress.failed > 0 && (
+              <Button onClick={onStartImportReview}>
+                Review failed {progress.failed} transactions
+              </Button>
+            )}
+          </>
+        )}
       </Footer>
+
+      <AlertDialog open={isCancelAlertOpen} onOpenChange={() => setIsCancelAlertOpen(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              If you cancel the import, all remaining transactions will be skipped.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={onCancelImport}>Yes, cancel</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isDismissAlertOpen} onOpenChange={() => setIsDismissAlertOpen(false)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              If you dismiss the import, you will not be able to review failed transactions later.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={onFinishImport}>Yes, dismiss</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

@@ -58,11 +58,9 @@ export const LoginForm: React.FC = () => {
         onClick={signInWithGithubHandler}
       >
         <span className="absolute inset-y-0 left-4 flex items-center">
-          {activeProvider === "github" && isPending ? (
-            <Spinner className="h-6 w-6" />
-          ) : (
-            icons.github
-          )}
+          <Spinner isLoading={isPending && activeProvider === "github"} className="h-6 w-6">
+            {icons.github}
+          </Spinner>
         </span>
         <span className="ml-2 text-base">Sign in with GitHub</span>
       </Button>
@@ -74,11 +72,9 @@ export const LoginForm: React.FC = () => {
         onClick={signInWithGoogleHandler}
       >
         <span className="absolute inset-y-0 left-4 flex items-center">
-          {activeProvider === "google" && isPending ? (
-            <Spinner className="h-6 w-6" />
-          ) : (
-            icons.google
-          )}
+          <Spinner isLoading={isPending && activeProvider === "google"} className="h-6 w-6">
+            {icons.google}
+          </Spinner>
         </span>
         <span className="ml-2 text-base">Sign in with Google</span>
       </Button>

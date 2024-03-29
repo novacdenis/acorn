@@ -31,6 +31,7 @@ export type Database = {
           description: string;
           id: number;
           timestamp: string;
+          user_id: string;
         };
         Insert: {
           amount: number;
@@ -38,6 +39,7 @@ export type Database = {
           description: string;
           id?: number;
           timestamp: string;
+          user_id: string;
         };
         Update: {
           amount?: number;
@@ -45,6 +47,7 @@ export type Database = {
           description?: string;
           id?: number;
           timestamp?: string;
+          user_id?: string;
         };
         Relationships: [
           {
@@ -52,6 +55,13 @@ export type Database = {
             columns: ["category_id"];
             isOneToOne: false;
             referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "public_transactions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
             referencedColumns: ["id"];
           },
         ];

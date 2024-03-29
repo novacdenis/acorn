@@ -1,10 +1,6 @@
 "use client";
 
-import type {
-  ExtractedTransaction,
-  ExtractedTransactionBase,
-  ExtractedTransactionStatus,
-} from "../types";
+import type { Transaction } from "../types";
 
 import React from "react";
 import { create } from "zustand";
@@ -12,9 +8,13 @@ import { useShallow } from "zustand/react/shallow";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks";
+import { createClient } from "@/lib/supabase/client";
+import { getApiErrorMessage } from "@/utils";
 
 import { ProgressStep } from "./progress-step";
+import { ReviewStep } from "./review-step";
 import { UploadStep } from "./upload-step";
+import { createTransaction } from "../actions";
 
 export const enum Step {
   Upload = "upload",
@@ -22,8 +22,45 @@ export const enum Step {
   Review = "review",
 }
 
+export type Bank = "vb";
+
+interface ExtractedTransactionIdleStatus {
+  status: "idle";
+}
+
+interface ExtractedTransactionLoadingStatus {
+  status: "loading";
+}
+
+interface ExtractedTransactionErrorStatus {
+  status: "error";
+  error: string;
+}
+
+interface ExtractedTransactionDoneStatus {
+  status: "done";
+  response: Transaction;
+}
+
+export interface ExtractedTransactionBase {
+  uid: string;
+  data: {
+    category: string;
+    description: string;
+    amount: number;
+    timestamp: Date;
+  };
+}
+export type ExtractedTransactionStatus =
+  | ExtractedTransactionIdleStatus
+  | ExtractedTransactionLoadingStatus
+  | ExtractedTransactionErrorStatus
+  | ExtractedTransactionDoneStatus;
+
+export type ExtractedTransaction = ExtractedTransactionBase & ExtractedTransactionStatus;
+
 export interface ImportProgress {
-  status: "idle" | "loading" | "pause" | "done";
+  status: "idle" | "loading" | "cancelled" | "done";
   total: number;
   imported: number;
   failed: number;
@@ -43,10 +80,11 @@ export interface ImportDialogContextValue {
   isMobile: boolean;
   transactions: ExtractedTransaction[];
   progress: ImportProgress;
-  updateTransaction: (uid: string, status: ExtractedTransactionStatus) => void;
-  removeTransaction: (uid: string) => void;
   onStartImport: (files: ExtractedTransaction[]) => Promise<void>;
   onCancelImport: () => void;
+  onFinishImport: () => void;
+  onStartImportReview: () => void;
+  onFinishImportReview: () => void;
 }
 
 export const ImportDialogContext = React.createContext<ImportDialogContextValue | undefined>(
@@ -60,18 +98,6 @@ export const useImportDialogContext = () => {
     throw new Error("useImportContext must be used within a ImportProvider");
   }
   return context;
-};
-
-const mockImport = async () => {
-  return new Promise<void>((resolve, reject) => {
-    setTimeout(() => {
-      if (Math.random() < 0.05) {
-        reject();
-      } else {
-        resolve();
-      }
-    }, Math.random() * 300);
-  });
 };
 
 export const ImportDialog: React.FC = () => {
@@ -90,6 +116,15 @@ export const ImportDialog: React.FC = () => {
   const isMobile = useMediaQuery("(max-width: 640px)");
   const abortController = React.useRef<AbortController | null>(null);
 
+  const resetImportState = React.useCallback(() => {
+    setIsOpen(false);
+    setTimeout(() => {
+      setTransactions([]);
+      setProgress({ status: "idle", total: 0, imported: 0, failed: 0 });
+      setStep(Step.Upload);
+    });
+  }, [setIsOpen]);
+
   const updateTransaction = React.useCallback((uid: string, status: ExtractedTransactionStatus) => {
     setTransactions((prev) =>
       prev.map((t) => {
@@ -107,63 +142,94 @@ export const ImportDialog: React.FC = () => {
     );
   }, []);
 
-  const removeTransaction = React.useCallback((uid: string) => {
-    setTransactions((prev) => prev.filter((t) => t.uid !== uid));
-  }, []);
-
   const onStartImport = React.useCallback(
     async (transactions: ExtractedTransaction[]) => {
       setTransactions(transactions);
       setStep(Step.Progress);
-
-      const controller = new AbortController();
-      abortController.current = controller;
-
       setProgress((prev) => ({
         ...prev,
         status: "loading",
         total: transactions.length,
       }));
 
+      const supabase = createClient();
+      abortController.current = new AbortController();
+
       for (const transaction of transactions) {
-        if (controller.signal.aborted) {
-          setProgress((prev) => ({
-            ...prev,
-            status: "pause",
-          }));
+        if (abortController.current.signal.aborted) {
           break;
         }
 
-        try {
-          updateTransaction(transaction.uid, { status: "loading" });
+        updateTransaction(transaction.uid, { status: "loading" });
 
-          await mockImport();
+        try {
+          const REMOVE_AFTER_TEST = true;
+          if (REMOVE_AFTER_TEST) {
+            throw new Error("Test error");
+          }
+
+          const category = await supabase
+            .from("categories")
+            .select("id")
+            .contains("aliases", [transaction.data.category])
+            .single();
+
+          if (category.error) {
+            throw new Error(category.error.message);
+          }
+
+          const response = await createTransaction({
+            description: transaction.data.description,
+            category_id: category.data.id,
+            amount: transaction.data.amount,
+            timestamp: transaction.data.timestamp,
+          });
 
           setProgress((prev) => ({
             ...prev,
             imported: prev.imported + 1,
           }));
-          updateTransaction(transaction.uid, { status: "done" });
-        } catch {
+          updateTransaction(transaction.uid, {
+            status: "done",
+            response,
+          });
+        } catch (error) {
           setProgress((prev) => ({
             ...prev,
             failed: prev.failed + 1,
           }));
-          updateTransaction(transaction.uid, { status: "error" });
+          updateTransaction(transaction.uid, {
+            status: "error",
+            error: getApiErrorMessage(error, "An error occurred while importing transaction."),
+          });
         }
       }
 
       setProgress((prev) => ({
         ...prev,
-        status: "done",
+        status: abortController.current?.signal.aborted ? "cancelled" : "done",
       }));
     },
     [updateTransaction]
   );
 
   const onCancelImport = React.useCallback(() => {
-    abortController.current?.abort();
+    if (abortController.current) {
+      abortController.current.abort();
+    }
   }, []);
+
+  const onFinishImport = React.useCallback(() => {
+    resetImportState();
+  }, [resetImportState]);
+
+  const onStartImportReview = React.useCallback(() => {
+    setStep(Step.Review);
+  }, []);
+
+  const onFinishImportReview = React.useCallback(() => {
+    resetImportState();
+  }, [resetImportState]);
 
   const Root = isMobile ? Drawer : Dialog;
   const Content = isMobile ? DrawerContent : DialogContent;
@@ -173,19 +239,21 @@ export const ImportDialog: React.FC = () => {
       isMobile,
       transactions,
       progress,
-      updateTransaction,
-      removeTransaction,
       onStartImport,
       onCancelImport,
+      onFinishImport,
+      onStartImportReview,
+      onFinishImportReview,
     }),
     [
       isMobile,
       transactions,
       progress,
-      updateTransaction,
-      removeTransaction,
       onStartImport,
       onCancelImport,
+      onFinishImport,
+      onStartImportReview,
+      onFinishImportReview,
     ]
   );
 
@@ -213,6 +281,7 @@ export const ImportDialog: React.FC = () => {
           >
             {step === Step.Upload && <UploadStep />}
             {step === Step.Progress && <ProgressStep />}
+            {step === Step.Review && <ReviewStep />}
           </Content>
         </Root>
       </Root>

@@ -24,7 +24,7 @@ export const ProgressStep: React.FC = () => {
   const total = transactions.length;
   const imported = transactions.filter((t) => t.status === "done").length;
   const failed = transactions.filter((t) => t.status === "error").length;
-  const percent = Math.round(((imported + failed) / total) * 100);
+  const percentage = Math.round(((imported + failed) / total) * 100);
 
   const title = React.useMemo(() => {
     const active = transactions.find((t) => t.status === "uploading");
@@ -33,12 +33,12 @@ export const ProgressStep: React.FC = () => {
       return active.data.description;
     }
 
-    if (percent === 100) {
+    if (percentage === 100) {
       return "Completed";
     }
 
     return "...";
-  }, [percent, transactions]);
+  }, [percentage, transactions]);
 
   return (
     <>
@@ -48,10 +48,10 @@ export const ProgressStep: React.FC = () => {
       </Header>
 
       <div className="overflow-hidden">
-        <Progress value={percent} />
+        <Progress value={percentage} />
         <p className="mt-1 flex items-center justify-between text-sm font-medium text-muted-foreground">
           <span className="truncate">Importing: {title}</span>
-          <span className="ml-2">{percent}%</span>
+          <span className="ml-2">{percentage}%</span>
         </p>
       </div>
 

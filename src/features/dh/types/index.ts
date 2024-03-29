@@ -1,36 +1,15 @@
-export type Bank = "vb";
-
-interface ExtractedTransactionIdleStatus {
-  status: "idle";
+export interface Transaction {
+  id: number;
+  description: string;
+  category_id: number;
+  user_id: string;
+  amount: number;
+  timestamp: string;
 }
 
-interface ExtractedTransactionLoadingStatus {
-  status: "loading";
+export interface CreateTransactionBody {
+  description: string;
+  category_id: number;
+  amount: number;
+  timestamp: Date;
 }
-
-interface ExtractedTransactionErrorStatus {
-  status: "error";
-  error?: string;
-  errors?: { [key: string]: string };
-}
-
-interface ExtractedTransactionDoneStatus {
-  status: "done";
-}
-
-export interface ExtractedTransactionBase {
-  uid: string;
-  data: {
-    category: string;
-    description: string;
-    amount: number;
-    timestamp: Date;
-  };
-}
-export type ExtractedTransactionStatus =
-  | ExtractedTransactionIdleStatus
-  | ExtractedTransactionLoadingStatus
-  | ExtractedTransactionErrorStatus
-  | ExtractedTransactionDoneStatus;
-
-export type ExtractedTransaction = ExtractedTransactionBase & ExtractedTransactionStatus;

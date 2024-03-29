@@ -23,7 +23,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { signOut } from "@/features/auth";
-import { useImportDialogStore } from "@/features/dh";
+import { useImportDialogStore } from "@/features/data-hub";
 import { useTheme } from "@/providers";
 
 export const MainLayoutMenu: React.FC = () => {

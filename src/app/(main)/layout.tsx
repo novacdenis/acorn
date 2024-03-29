@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { ImportDialog } from "@/features/dh";
+import { ImportDialog } from "@/features/data-hub";
 import { MainLayout } from "@/layouts";
 import { createClient } from "@/lib/supabase/server";
 

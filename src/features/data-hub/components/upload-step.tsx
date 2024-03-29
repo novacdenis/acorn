@@ -1,3 +1,5 @@
+import type { Bank, ExtractedTransaction } from "../types";
+
 import React from "react";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/16/solid";
 import { ArrowUpIcon } from "@heroicons/react/20/solid";
@@ -16,12 +18,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { bytesToSize, cn, validateFile } from "@/utils";
 
-import {
-  useImportDialogContext,
-  useImportDialogStore,
-  type ExtractedTransaction,
-  type Bank,
-} from "./import-dialog";
+import { useImportDialogContext, useImportDialogStore } from "./import-dialog";
 import { BANK_OPTIONS } from "../constants";
 import { VBHtmlParser } from "../utils";
 

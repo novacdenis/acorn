@@ -1,44 +1,52 @@
-export const enum Step {
-  Select = "select",
-  Progress = "progress",
-  Review = "review",
-}
-
-export type Bank = "vb";
-
-interface ProcessedFileExtracting {
-  status: "extracting";
-}
-
-interface ProcessedFileDone {
-  status: "done";
-  transactions: ExtractedTransaction[];
-}
-
-interface ProcessedFileError {
-  status: "error";
-  error: string;
-}
-
-export type ProcessedFile = {
-  uid: string;
-  name: string;
-  extension: string;
-  size: number;
-  originalFile: File;
-  bank: Bank;
-} & (ProcessedFileExtracting | ProcessedFileDone | ProcessedFileError);
-
-export interface ExtractedTransactionData {
+export interface CreateTransactionBody {
   description: string;
-  category: string;
+  category_id: number;
+  amount: number;
+  timestamp: Date;
+}
+
+export interface Transaction {
+  id: number;
+  description: string;
+  category_id: number;
+  user_id: string;
   amount: number;
   timestamp: string;
 }
 
-export interface ExtractedTransaction {
-  uid: string;
-  data: ExtractedTransactionData;
-  status: "pending" | "uploading" | "done" | "error";
-  errors?: { [K in keyof ExtractedTransactionData | "general"]?: string };
+export type Bank = "vb";
+
+interface ExtractedTransactionIdleStatus {
+  status: "idle";
 }
+
+interface ExtractedTransactionLoadingStatus {
+  status: "loading";
+}
+
+interface ExtractedTransactionErrorStatus {
+  status: "error";
+  error: string;
+}
+
+interface ExtractedTransactionDoneStatus {
+  status: "done";
+  response: Transaction;
+}
+
+export interface ExtractedTransactionBase {
+  uid: string;
+  data: {
+    category: string;
+    description: string;
+    amount: number;
+    timestamp: Date;
+  };
+}
+export type ExtractedTransactionStatus =
+  | ExtractedTransactionIdleStatus
+  | ExtractedTransactionLoadingStatus
+  | ExtractedTransactionErrorStatus
+  | ExtractedTransactionDoneStatus;
+
+export type ExtractedTransaction = ExtractedTransactionBase & ExtractedTransactionStatus;

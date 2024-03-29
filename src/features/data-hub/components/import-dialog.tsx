@@ -1,6 +1,10 @@
 "use client";
 
-import type { Transaction } from "../types";
+import type {
+  ExtractedTransaction,
+  ExtractedTransactionBase,
+  ExtractedTransactionStatus,
+} from "../types";
 
 import React from "react";
 import { create } from "zustand";
@@ -21,43 +25,6 @@ export const enum Step {
   Progress = "progress",
   Review = "review",
 }
-
-export type Bank = "vb";
-
-interface ExtractedTransactionIdleStatus {
-  status: "idle";
-}
-
-interface ExtractedTransactionLoadingStatus {
-  status: "loading";
-}
-
-interface ExtractedTransactionErrorStatus {
-  status: "error";
-  error: string;
-}
-
-interface ExtractedTransactionDoneStatus {
-  status: "done";
-  response: Transaction;
-}
-
-export interface ExtractedTransactionBase {
-  uid: string;
-  data: {
-    category: string;
-    description: string;
-    amount: number;
-    timestamp: Date;
-  };
-}
-export type ExtractedTransactionStatus =
-  | ExtractedTransactionIdleStatus
-  | ExtractedTransactionLoadingStatus
-  | ExtractedTransactionErrorStatus
-  | ExtractedTransactionDoneStatus;
-
-export type ExtractedTransaction = ExtractedTransactionBase & ExtractedTransactionStatus;
 
 export interface ImportProgress {
   status: "idle" | "loading" | "cancelled" | "done";

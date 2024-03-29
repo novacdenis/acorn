@@ -1,17 +1,32 @@
 "use server";
 
-import type { ExtractedTransaction } from "../types";
+import type { CreateTransactionBody } from "../types";
 
 import { createClient } from "@/lib/supabase/server";
 
-export async function createTransaction(transaction: ExtractedTransaction) {
+export async function createTransaction(data: CreateTransactionBody) {
   const supabase = createClient();
-  const category = await supabase
-    .from("categories")
-    .select()
-    .contains("aliases", transaction.data.category);
+  const user = await supabase.auth.getUser();
 
-  if (category.error) {
-    return { status: "error", error: "" };
+  if (user.error) {
+    throw new Error(user.error.message);
   }
+
+  const response = await supabase
+    .from("transactions")
+    .insert({
+      description: data.description,
+      category_id: data.category_id,
+      user_id: user.data.user.id,
+      amount: data.amount,
+      timestamp: data.timestamp.toISOString(),
+    })
+    .select()
+    .single();
+
+  if (response.error) {
+    throw new Error(response.error.message);
+  }
+
+  return response.data;
 }

@@ -1,3 +1,5 @@
+import type { ExtractedTransaction } from "../types";
+
 import React from "react";
 import { PlusCircleIcon } from "@heroicons/react/16/solid";
 import { CalendarIcon, CheckIcon, ChevronUpDownIcon, ClockIcon } from "@heroicons/react/24/outline";
@@ -31,7 +33,7 @@ import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { cn, getApiErrorMessage, getPercentageFromTotal } from "@/utils";
 
-import { useImportDialogContext, type ExtractedTransaction } from "./import-dialog";
+import { useImportDialogContext } from "./import-dialog";
 import { createTransaction } from "../actions";
 
 const scheme = v.object({

@@ -1,3 +1,30 @@
+export interface DataHubFile {
+  id: number;
+  name: string;
+  imported_transactions: number;
+  user_id: string;
+  created_at: string;
+}
+
+export interface CreateDataHubFileBody {
+  name: string;
+  imported_transactions: number;
+}
+
+export interface Category {
+  id: number;
+  name: string;
+  color: string;
+  aliases: string[];
+  user_id: string;
+}
+
+export interface CreateCategoryBody {
+  name: string;
+  color: string;
+  aliases: string[];
+}
+
 export interface CreateTransactionBody {
   description: string;
   category_id: number;

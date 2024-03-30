@@ -4,14 +4,9 @@ import type { Transaction } from "../../types";
 
 import Image from "next/image";
 import { format } from "date-fns";
-import { cn } from "@/utils";
+import { cn, formatNumber } from "@/utils";
 
 import styles from "./row.module.css";
-
-const amountFormatter = new Intl.NumberFormat("ro-MD", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
 
 export interface RowProps {
   transaction: Transaction;
@@ -53,7 +48,7 @@ export const Row: React.FC<RowProps> = ({ transaction, onClick }) => {
         <span className="ml-1 block truncate">{transaction.description}</span>
       </h3>
       <p className="justify-self-end text-sm md:justify-self-start" style={{ gridArea: "amount" }}>
-        {amountFormatter.format(transaction.amount)} MDL
+        {formatNumber(transaction.amount, { decimals: 2 })} MDL
       </p>
       <p
         className="truncate text-sm text-muted-foreground md:text-primary"

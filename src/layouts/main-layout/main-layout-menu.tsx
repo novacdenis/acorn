@@ -1,13 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import React from "react";
 import {
-  ArrowUpTrayIcon,
   Cog6ToothIcon,
   SunIcon,
-  TagIcon,
   UserCircleIcon,
   ArrowLeftStartOnRectangleIcon,
+  CircleStackIcon,
 } from "@heroicons/react/16/solid";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -23,12 +23,10 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { signOut } from "@/features/auth";
-import { useImportDialogStore } from "@/features/data-hub";
 import { useTheme } from "@/providers";
 
 export const MainLayoutMenu: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
-  const { setIsOpen } = useImportDialogStore((store) => ({ setIsOpen: store.setIsOpen }));
 
   const [isPending, startTransition] = React.useTransition();
 
@@ -72,19 +70,14 @@ export const MainLayoutMenu: React.FC = () => {
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
-        <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
-            <DropdownMenuShortcut>
-              <TagIcon className="h-4 w-4" />
-            </DropdownMenuShortcut>
-            <span className="ml-3">Categories</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsOpen(true)}>
-            <DropdownMenuShortcut>
-              <ArrowUpTrayIcon className="h-4 w-4" />
-            </DropdownMenuShortcut>
-            <span className="ml-3">Import</span>
+          <DropdownMenuItem asChild>
+            <Link href="/data-hub">
+              <DropdownMenuShortcut>
+                <CircleStackIcon className="h-4 w-4" />
+              </DropdownMenuShortcut>
+              <span className="ml-3">Data Hub</span>
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
 

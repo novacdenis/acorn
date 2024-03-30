@@ -30,8 +30,8 @@ export const metadata: Metadata = {
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-5">
-      <Section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="container space-y-5">
+      <section className="grid gap-5 px-0 sm:grid-cols-2 xl:grid-cols-4">
         <Metric
           title="Total spent"
           value={1000}
@@ -63,7 +63,7 @@ export default function DashboardPage() {
           deltaSign="positive"
           trend={data.map((d) => ({ timestamp: d.timestamp, amount: Math.random() * 1000 }))}
         />
-      </Section>
+      </section>
 
       <Section>
         <SectionHeader>

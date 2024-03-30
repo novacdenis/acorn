@@ -9,20 +9,63 @@ export type Database = {
           color: string;
           id: number;
           name: string;
+          user_id: string;
         };
         Insert: {
           aliases: string[];
           color: string;
           id?: number;
           name: string;
+          user_id: string;
         };
         Update: {
           aliases?: string[];
           color?: string;
           id?: number;
           name?: string;
+          user_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "public_categories_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      files: {
+        Row: {
+          created_at: string;
+          id: number;
+          imported_transactions: number;
+          name: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: number;
+          imported_transactions: number;
+          name: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: number;
+          imported_transactions?: number;
+          name?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "public_files_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       transactions: {
         Row: {

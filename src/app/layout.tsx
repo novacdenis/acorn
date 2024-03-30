@@ -7,7 +7,7 @@ import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
 import { Toaster } from "@/components/ui/sonner";
 import { SessionRefresher } from "@/features/auth";
-import { ThemeProvider } from "@/providers";
+import { QueryClientProvider, ThemeProvider } from "@/providers";
 import { cn } from "@/utils";
 
 import "@/styles/index.css";
@@ -41,7 +41,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="background-color" media="(prefers-color-scheme: dark)" content="black" />
       </head>
       <body>
-        <ThemeProvider defaultTheme={resolvedTheme}>{children}</ThemeProvider>
+        <QueryClientProvider>
+          <ThemeProvider defaultTheme={resolvedTheme}>{children}</ThemeProvider>
+        </QueryClientProvider>
         <SessionRefresher />
         <Toaster />
         <SpeedInsights />

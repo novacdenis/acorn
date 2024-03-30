@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Progress } from "@/components/ui/progress";
-import { getPercentageFromTotal } from "@/utils";
+import { formatNumber, getPercentageFromTotal } from "@/utils";
 
 import { useImportDialogContext } from "./import-dialog";
 
@@ -73,7 +73,7 @@ export const ProgressStep: React.FC = () => {
             <InformationCircleIcon className="h-4 w-4" />
             <span className="ml-1">Total transactions</span>
           </p>
-          <p className="text-sm font-medium">{progress.total}</p>
+          <p className="text-sm font-medium">{formatNumber(progress.total)}</p>
         </li>
         <li className="flex items-center justify-between">
           <p className="flex items-center text-sm">
@@ -81,7 +81,7 @@ export const ProgressStep: React.FC = () => {
             <span className="ml-1">Imported transactions</span>
           </p>
           <p className="flex items-center text-sm font-medium">
-            <span>{progress.imported}</span>
+            <span>{formatNumber(progress.imported)}</span>
           </p>
         </li>
         <li className="flex items-center justify-between">
@@ -89,7 +89,7 @@ export const ProgressStep: React.FC = () => {
             <XCircleIcon className="h-4 w-4" />
             <span className="ml-1">Failed transactions</span>
           </p>
-          <p className="text-sm font-medium">{progress.failed}</p>
+          <p className="text-sm font-medium">{formatNumber(progress.failed)}</p>
         </li>
       </ul>
 
@@ -117,7 +117,7 @@ export const ProgressStep: React.FC = () => {
             </Button>
             {progress.failed > 0 && (
               <Button onClick={onStartImportReview}>
-                Review failed {progress.failed} transactions
+                Review failed {formatNumber(progress.failed, { notation: "compact" })} transactions
               </Button>
             )}
           </>

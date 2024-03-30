@@ -1,4 +1,4 @@
-import type { Bank, ExtractedTransaction } from "../types";
+import type { Bank, ExtractedTransaction } from "../../types";
 
 import React from "react";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/16/solid";
@@ -16,11 +16,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
-import { bytesToSize, cn, validateFile } from "@/utils";
+import { bytesToSize, cn, formatNumber, validateFile } from "@/utils";
 
 import { useImportDialogContext, useImportDialogStore } from "./import-dialog";
-import { BANK_OPTIONS } from "../constants";
-import { VBHtmlParser } from "../utils";
+import { BANK_OPTIONS } from "../../constants";
+import { VBHtmlParser } from "../../utils";
 
 interface ProcessedFilePendingStatus {
   status: "pending";
@@ -36,7 +36,7 @@ interface ProcessedFileErrorStatus {
   error: string;
 }
 
-export interface ProcessedFileBase {
+interface ProcessedFileBase {
   uid: string;
   name: string;
   extension: string;
@@ -45,12 +45,12 @@ export interface ProcessedFileBase {
   bank: Bank;
 }
 
-export type ProcessedFileStatus =
+type ProcessedFileStatus =
   | ProcessedFilePendingStatus
   | ProcessedFileDoneStatus
   | ProcessedFileErrorStatus;
 
-export type ProcessedFile = ProcessedFileBase & ProcessedFileStatus;
+type ProcessedFile = ProcessedFileBase & ProcessedFileStatus;
 
 const processFiles = (files: File[], config: { bank: Bank }) => {
   const processedFiles: ProcessedFile[] = [];
@@ -96,10 +96,6 @@ const extractTransactions = async (file: ProcessedFile) => {
   }
 };
 
-const countFormatter = new Intl.NumberFormat("ro-MD", {
-  notation: "compact",
-});
-
 interface UploadStepFileStatusProps {
   file: ProcessedFile;
 }
@@ -115,7 +111,7 @@ const UploadStepFileStatus: React.FC<UploadStepFileStatusProps> = ({ file }) => 
       <span className="mx-1 inline-block">•</span>
       <span>
         {file.status === "done"
-          ? `${countFormatter.format(file.transactions.length)} transactions`
+          ? `${formatNumber(file.transactions.length, { notation: "compact" })} transactions`
           : "Processing file..."}
       </span>
     </p>
@@ -162,7 +158,7 @@ const File: React.FC<FileProps> = ({ file, onRemove }) => {
 };
 
 export const UploadStep: React.FC = () => {
-  const { setIsOpen } = useImportDialogStore((store) => ({ setIsOpen: store.setIsOpen }));
+  const { onOpenChange } = useImportDialogStore((store) => ({ onOpenChange: store.onOpenChange }));
   const { isMobile, onStartImport } = useImportDialogContext();
 
   const [bank, setBank] = React.useState<Bank>();
@@ -350,7 +346,7 @@ export const UploadStep: React.FC = () => {
       )}
 
       <Footer>
-        <Button variant="secondary" disabled={!isCancelEnabled} onClick={() => setIsOpen(false)}>
+        <Button variant="secondary" disabled={!isCancelEnabled} onClick={() => onOpenChange(false)}>
           Cancel
         </Button>
         <Button disabled={!isContinueEnabled} onClick={onContinue}>

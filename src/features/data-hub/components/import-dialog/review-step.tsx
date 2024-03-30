@@ -1,22 +1,16 @@
-import type { ExtractedTransaction } from "../types";
+import type { CreateTransactionBody, ExtractedTransaction } from "../../types";
 
 import React from "react";
 import { PlusCircleIcon } from "@heroicons/react/16/solid";
-import { CalendarIcon, CheckIcon, ChevronUpDownIcon, ClockIcon } from "@heroicons/react/24/outline";
+import { CalendarIcon, ClockIcon } from "@heroicons/react/24/outline";
 import { valibotResolver } from "@hookform/resolvers/valibot";
-import { format } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { format, add } from "date-fns";
 import { useForm } from "react-hook-form";
 import * as v from "valibot";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import {
@@ -30,11 +24,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn, getApiErrorMessage, getPercentageFromTotal } from "@/utils";
 
 import { useImportDialogContext } from "./import-dialog";
-import { createTransaction } from "../actions";
+import { CategoryForm } from "..";
+import { createTransaction, getAllCategories } from "../../actions";
 
 const scheme = v.object({
   description: v.string([v.minLength(1, "Description is required")]),
@@ -47,29 +49,23 @@ const scheme = v.object({
   time: v.string([v.minLength(1, "Time is required")]),
 });
 
-type FormInput = v.Input<typeof scheme>;
+type FormValues = v.Input<typeof scheme>;
 
 interface ReviewFormProps {
   transaction: ExtractedTransaction;
   onComplete: () => void;
 }
 
-const languages = [
-  { label: "English", value: 1 },
-  { label: "French", value: 2 },
-  { label: "German", value: 3 },
-  { label: "Spanish", value: 4 },
-  { label: "Portuguese", value: 5 },
-  { label: "Russian", value: 6 },
-  { label: "Japanese", value: 7 },
-  { label: "Korean", value: 8 },
-  { label: "Chinese", value: 9 },
-];
-
 const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
   const { isMobile } = useImportDialogContext();
+  const { data: categories, refetch: refetchCategories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => await getAllCategories(),
+  });
 
-  const form = useForm<FormInput>({
+  const [isCategoryFormOpen, setIsCategoryFormOpen] = React.useState(false);
+
+  const form = useForm<FormValues>({
     defaultValues: {
       description: transaction.data.description,
       amount: transaction.data.amount,
@@ -79,14 +75,19 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
     resolver: valibotResolver(scheme),
   });
 
-  const onSubmit = async (values: FormInput) => {
+  const onSubmit = async (values: FormValues) => {
     try {
-      await createTransaction({
+      const data: CreateTransactionBody = {
         description: values.description,
         category_id: values.category_id,
         amount: values.amount,
-        timestamp: values.date,
-      });
+        timestamp: add(values.date, {
+          hours: Number(values.time.split(":")[0]) ?? 0,
+          minutes: Number(values.time.split(":")[1]) ?? 0,
+        }),
+      };
+
+      await createTransaction(data);
       onComplete();
     } catch (error) {
       form.setError("root", { type: "manual", message: getApiErrorMessage(error) });
@@ -118,75 +119,64 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea {...field} minRows={1} placeholder="Enter a description" />
+                  <Textarea
+                    {...field}
+                    minRows={1}
+                    placeholder="Enter a description"
+                    disabled={form.formState.isSubmitting}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <div className="grid grid-cols-3 gap-2 place-self-stretch">
-            <FormField
-              control={form.control}
-              name="category_id"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>Language</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-full px-3 text-left text-base font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value
-                            ? languages.find((language) => language.value === field.value)?.label
-                            : "Select language"}
-                          <ChevronUpDownIcon className="ml-auto h-5 w-5 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-                      <Command className="relative">
-                        <CommandInput placeholder="Search framework..." className="h-9" />
-                        <CommandEmpty>No framework found.</CommandEmpty>
-                        <CommandGroup title="Languages">
-                          {languages.map((language) => (
-                            <CommandItem
-                              value={language.label}
-                              key={language.value}
-                              onSelect={() => {
-                                form.setValue("category_id", language.value);
-                              }}
-                            >
-                              {language.label}
-                              <CheckIcon
-                                className={cn(
-                                  "ml-auto h-4 w-4",
-                                  language.value === field.value ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="col-span-1 flex items-center justify-center">
-              <Button variant="ghost" className="mt-1 w-full border border-dashed bg-background">
-                <PlusCircleIcon className="h-4 w-4" />
-                <span className="ml-2">Create</span>
-              </Button>
-            </div>
-          </div>
+          <FormField
+            control={form.control}
+            name="category_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <fieldset className="grid grid-cols-3 gap-2">
+                  <Select
+                    defaultValue={field.value?.toString()}
+                    onValueChange={(v) => field.onChange(Number(v))}
+                    disabled={form.formState.isSubmitting}
+                  >
+                    <SelectTrigger className="col-span-2">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories?.length ? (
+                        categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            {category.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem disabled value="null">
+                          No categories found
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="ghost"
+                    className="col-span-1 border border-dashed bg-background"
+                    disabled={form.formState.isSubmitting}
+                    onClick={() => {
+                      setIsCategoryFormOpen(true);
+                      refetchCategories();
+                    }}
+                  >
+                    <PlusCircleIcon className="h-4 w-4" />
+                    <span className="ml-2">Create</span>
+                  </Button>
+                </fieldset>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}
@@ -195,30 +185,31 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
               <FormItem>
                 <FormLabel>Amount</FormLabel>
                 <FormControl>
-                  <div className="relative">
+                  <fieldset className="relative">
                     <Input
                       {...field}
                       type="number"
                       inputMode="decimal"
                       placeholder="Enter an amount"
                       className="pr-14"
+                      disabled={form.formState.isSubmitting}
                     />
-                    <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-sm font-semibold text-muted-foreground">
+                    <span className="pointer-events-none absolute inset-y-0 right-0 flex w-14 items-center px-3 text-sm font-semibold text-muted-foreground">
                       MDL
                     </span>
-                  </div>
+                  </fieldset>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-5 gap-2">
             <FormField
               control={form.control}
               name="date"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="col-span-3">
                   <FormLabel>Date</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -229,6 +220,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
                             "w-full px-3 text-left text-base font-normal",
                             !field.value && "text-muted-foreground"
                           )}
+                          disabled={form.formState.isSubmitting}
                         >
                           {field.value ? (
                             format(field.value, "MMM d, yyyy")
@@ -259,12 +251,17 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
               control={form.control}
               name="time"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-2">
                   <FormLabel>Time</FormLabel>
-                  <div className="relative">
-                    <Input {...field} type="time" className="pr-10" />
+                  <fieldset className="relative">
+                    <Input
+                      {...field}
+                      type="time"
+                      className="pr-11"
+                      disabled={form.formState.isSubmitting}
+                    />
                     <button
-                      className="absolute inset-y-0 right-0 flex items-center justify-center pr-3"
+                      className="absolute inset-y-0 right-0 flex items-center justify-center rounded-xl px-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       onClick={(event) => {
                         const input = event.currentTarget.previousSibling;
                         if (input && input instanceof HTMLInputElement) {
@@ -274,7 +271,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
                     >
                       <ClockIcon className="h-5 w-5 opacity-50" />
                     </button>
-                  </div>
+                  </fieldset>
                   <FormMessage />
                 </FormItem>
               )}
@@ -284,11 +281,22 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
       </Form>
 
       <Footer>
-        <Button variant="secondary" onClick={onComplete}>
+        <Button variant="secondary" disabled={form.formState.isSubmitting} onClick={onComplete}>
           Skip
         </Button>
-        <Button onClick={form.handleSubmit(onSubmit)}>Submit</Button>
+        <Button disabled={form.formState.isSubmitting} onClick={form.handleSubmit(onSubmit)}>
+          Submit
+        </Button>
       </Footer>
+
+      <CategoryForm
+        open={isCategoryFormOpen}
+        onClose={() => setIsCategoryFormOpen(false)}
+        onSuccess={() => {
+          setIsCategoryFormOpen(false);
+          refetchCategories();
+        }}
+      />
     </>
   );
 };
@@ -330,7 +338,7 @@ export const ReviewStep: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid gap-4 rounded-2xl border border-primary/10 bg-primary/5 p-2">
+      <div className="grid gap-4 rounded-2xl border border-primary/10 bg-primary/5 p-2.5">
         {currentTransaction ? (
           <ReviewForm
             key={currentTransaction.uid}
@@ -348,11 +356,13 @@ export const ReviewStep: React.FC = () => {
         )}
       </div>
 
-      <Footer>
-        <Button variant="secondary" onClick={onFinishImportReview}>
-          Dismiss
-        </Button>
-      </Footer>
+      {!currentTransaction && (
+        <Footer>
+          <Button variant="secondary" onClick={onFinishImportReview}>
+            Dismiss
+          </Button>
+        </Footer>
+      )}
     </>
   );
 };

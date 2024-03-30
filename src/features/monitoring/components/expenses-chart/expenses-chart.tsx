@@ -11,10 +11,7 @@ import { BarStack } from "@visx/shape";
 import { Text } from "@visx/text";
 import { format } from "date-fns";
 import { useMediaQuery } from "@/hooks";
-
-const numberFormatter = new Intl.NumberFormat("ro-MD", {
-  notation: "compact",
-});
+import { formatNumber } from "@/utils";
 
 const colors = {
   household: "#fd003a",
@@ -125,7 +122,7 @@ const Visualization: React.FC<VisualizationProps> = ({ width, data }) => {
             scale={yScale}
             axisLineClassName="stroke-muted-foreground"
             tickLineProps={{ className: "stroke-muted-foreground" }}
-            tickFormat={(value) => numberFormatter.format(value.valueOf())}
+            tickFormat={(value) => formatNumber(value.valueOf(), { notation: "compact" })}
             tickComponent={({ formattedValue, ...rest }) => (
               <Text
                 {...rest}

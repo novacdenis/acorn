@@ -74,10 +74,91 @@
   }
 }
 
+@layer components {
+  input[type="color"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  input[type="color"]::-webkit-color-swatch {
+    border-radius: theme("borderRadius.md");
+    border: none;
+    box-shadow: theme("boxShadow.md");
+  }
+  input[type="color"]::-moz-color-swatch {
+    border-radius: theme("borderRadius.md");
+    border: none;
+    box-shadow: theme("boxShadow.md");
+  }
+}
+
 @layer utilities {
   .bg-grid {
     background-image: linear-gradient(to right, #80808012 1px, transparent 1px),
       linear-gradient(to bottom, #80808012 1px, transparent 1px);
     background-size: 48px 48px;
   }
+}
+
+.so {
+  -webkit-box-align: center;
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
+  padding: 2px 8px;
+  box-sizing: border-box;
+}
+
+.so-c {
+  display: flex;
+  min-width: 0px;
+  background-color: rgb(230, 230, 230);
+  border-radius: 2px;
+  margin: 2px;
+  box-sizing: border-box;
+}
+
+.so-i {
+  visibility: visible;
+  flex: 1 1 auto;
+  display: inline-grid;
+  grid-area: 1 / 1 / 2 / 3;
+  grid-template-columns: 0px min-content;
+  margin: 2px;
+  padding-bottom: 2px;
+  padding-top: 2px;
+  color: rgb(51, 51, 51);
+  box-sizing: border-box;
+}
+
+.so-ii {
+  color: inherit;
+  background: 0px center;
+  opacity: 1;
+  width: 100%;
+  grid-area: 1 / 2;
+  font: inherit;
+  min-width: 2px;
+  border: 0px;
+  margin: 0px;
+  outline: 0px;
+  padding: 0px;
+}
+
+.so-i::after {
+  content: attr(data-value);
+  visibility: hidden;
+  white-space: pre;
+  grid-area: 1 / 2;
+  font: inherit;
+  min-width: 2px;
+  border: 0px;
+  margin: 0px;
+  outline: 0px;
+  padding: 0px;
 }

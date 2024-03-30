@@ -1,20 +1,9 @@
 import type { Trend } from "../../types";
 
-import { cn } from "@/utils";
+import { cn, formatNumber } from "@/utils";
 
 import { MetricTrend } from "./metric-trend";
 import styles from "./metric.module.css";
-
-const valueFormatter = new Intl.NumberFormat("ro-MD", {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 0,
-});
-
-const deltaFormatter = new Intl.NumberFormat("ro-MD", {
-  style: "percent",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
 
 export interface MetricProps {
   title: string;
@@ -28,7 +17,7 @@ export const Metric: React.FC<MetricProps> = ({ title, value, delta, deltaSign, 
   return (
     <div
       className={cn(
-        "relative grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1 rounded-2xl border",
+        "relative grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1 rounded-2xl border bg-white dark:bg-black",
         "border-primary/10 px-4 py-4 pb-7 shadow-sm md:gap-y-2 md:px-5 md:py-5 md:pb-12",
         styles.area
       )}
@@ -40,7 +29,7 @@ export const Metric: React.FC<MetricProps> = ({ title, value, delta, deltaSign, 
         {title}
       </h3>
       <h4 className="text-xl font-bold text-primary md:text-2xl" style={{ gridArea: "value" }}>
-        {valueFormatter.format(value)} MDL
+        {formatNumber(value, { decimals: 0 })} MDL
       </h4>
       <p
         className={cn(
@@ -68,7 +57,7 @@ export const Metric: React.FC<MetricProps> = ({ title, value, delta, deltaSign, 
           />
         </svg>
         <span className="ml-1 text-sm font-semibold md:text-base">
-          {deltaFormatter.format(delta / 100)}
+          {formatNumber(delta, { decimals: 2 })} %
         </span>
       </p>
       <MetricTrend data={trend} />

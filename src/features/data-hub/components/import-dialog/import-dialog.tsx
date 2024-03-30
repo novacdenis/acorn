@@ -4,7 +4,7 @@ import type {
   ExtractedTransaction,
   ExtractedTransactionBase,
   ExtractedTransactionStatus,
-} from "../types";
+} from "../../types";
 
 import React from "react";
 import { create } from "zustand";
@@ -18,7 +18,7 @@ import { getApiErrorMessage } from "@/utils";
 import { ProgressStep } from "./progress-step";
 import { ReviewStep } from "./review-step";
 import { UploadStep } from "./upload-step";
-import { createTransaction } from "../actions";
+import { createTransaction } from "../../actions";
 
 export const enum Step {
   Upload = "upload",
@@ -34,13 +34,13 @@ export interface ImportProgress {
 }
 
 export interface ImportDialogStore {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
+  open: boolean;
+  onOpenChange: (value: boolean) => void;
 }
 
 export const useImportDialogStore = create<ImportDialogStore>((set) => ({
-  isOpen: false,
-  setIsOpen: (isOpen) => set({ isOpen }),
+  open: false,
+  onOpenChange: (value) => set({ open: value }),
 }));
 
 export interface ImportDialogContextValue {
@@ -68,8 +68,8 @@ export const useImportDialogContext = () => {
 };
 
 export const ImportDialog: React.FC = () => {
-  const [isOpen, setIsOpen] = useImportDialogStore(
-    useShallow((state) => [state.isOpen, state.setIsOpen])
+  const [open, onOpenChange] = useImportDialogStore(
+    useShallow((state) => [state.open, state.onOpenChange])
   );
   const [step, setStep] = React.useState(Step.Upload);
   const [transactions, setTransactions] = React.useState<ExtractedTransaction[]>([]);
@@ -84,13 +84,13 @@ export const ImportDialog: React.FC = () => {
   const abortController = React.useRef<AbortController | null>(null);
 
   const resetImportState = React.useCallback(() => {
-    setIsOpen(false);
+    onOpenChange(false);
     setTimeout(() => {
       setTransactions([]);
       setProgress({ status: "idle", total: 0, imported: 0, failed: 0 });
       setStep(Step.Upload);
     });
-  }, [setIsOpen]);
+  }, [onOpenChange]);
 
   const updateTransaction = React.useCallback((uid: string, status: ExtractedTransactionStatus) => {
     setTransactions((prev) =>
@@ -226,31 +226,29 @@ export const ImportDialog: React.FC = () => {
 
   return (
     <ImportDialogContext.Provider value={value}>
-      <Root open={isOpen} onOpenChange={() => setIsOpen(false)}>
-        <Root open={isOpen} onOpenChange={setIsOpen}>
-          <Content
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            onDragEnter={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            onDragLeave={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-          >
-            {step === Step.Upload && <UploadStep />}
-            {step === Step.Progress && <ProgressStep />}
-            {step === Step.Review && <ReviewStep />}
-          </Content>
-        </Root>
+      <Root open={open} onOpenChange={onOpenChange}>
+        <Content
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDragEnter={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          {step === Step.Upload && <UploadStep />}
+          {step === Step.Progress && <ProgressStep />}
+          {step === Step.Review && <ReviewStep />}
+        </Content>
       </Root>
     </ImportDialogContext.Provider>
   );

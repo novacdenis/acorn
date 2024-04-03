@@ -1,4 +1,4 @@
-import type { Bank } from "../types";
+import type { Bank, CategoriesQuery } from "../types";
 
 import { sizeToBytes } from "@/utils";
 
@@ -20,3 +20,10 @@ export const BANK_OPTIONS: Record<
     disabled: false,
   },
 };
+
+export const CATEGORIES_DEFAULT_QUERY = {
+  page: 1,
+  take: 10,
+  orderBy: "created_at",
+  orderDirection: "desc",
+} satisfies CategoriesQuery;

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Category } from "../../types";
+import type { Category, CreateCategoryBody } from "../../types";
 
 import React from "react";
 import { PlusIcon } from "@heroicons/react/16/solid";
@@ -9,6 +9,17 @@ import { valibotResolver } from "@hookform/resolvers/valibot";
 import { useFieldArray, useForm } from "react-hook-form";
 import * as v from "valibot";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,6 +30,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import {
   Form,
   FormControl,
   FormField,
@@ -27,9 +46,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { generateRandomHex, getApiErrorMessage } from "@/utils";
+import { useMediaQuery } from "@/hooks";
+import { cn, generateRandomHex, getApiErrorMessage } from "@/utils";
 
-import { createCategory } from "../..";
+import { createCategory, deleteCategory, updateCategory } from "../../actions";
 
 const schema = v.object({
   name: v.string([
@@ -45,16 +65,21 @@ type FormValues = v.Input<typeof schema>;
 export interface CategoryFormProps {
   open: boolean;
   onClose: () => void;
-  onSuccess: (category: Category) => void;
+  onSubmitSuccess?: (category: Category) => void;
+  onDeleteSuccess?: (category: Category) => void;
   defaultValues?: Category;
 }
 
 export const CategoryForm: React.FC<CategoryFormProps> = ({
   open,
   onClose,
-  onSuccess,
+  onSubmitSuccess,
+  onDeleteSuccess,
   defaultValues,
 }) => {
+  const [isDeleting, setIsDeleting] = React.useState(false);
+
+  const isMobile = useMediaQuery("(max-width: 640px)");
   const form = useForm<FormValues>({
     defaultValues: {
       name: defaultValues?.name ?? "",
@@ -69,32 +94,80 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
   });
   const aliasesValues = form.watch("aliases");
 
+  const onCloseHandler = () => {
+    form.reset();
+    onClose();
+  };
+
   const onSubmit = async (values: FormValues) => {
     try {
-      const response = await createCategory({
+      const data: CreateCategoryBody = {
         name: values.name,
         color: values.color,
         aliases: values.aliases.map((alias) => alias.value),
-      });
-      form.reset();
-      onSuccess(response);
+      };
+
+      let response: Category | undefined = undefined;
+
+      if (defaultValues?.id) {
+        response = await updateCategory(defaultValues.id, data);
+      } else {
+        response = await createCategory(data);
+      }
+
+      if (onSubmitSuccess) {
+        onSubmitSuccess(response);
+      }
+      onCloseHandler();
     } catch (error) {
       form.setError("root", { type: "manual", message: getApiErrorMessage(error) });
     }
   };
 
+  const onDelete = async () => {
+    if (!defaultValues?.id) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteCategory(defaultValues.id);
+
+      if (onDeleteSuccess) {
+        onDeleteSuccess(defaultValues);
+      }
+      onCloseHandler();
+    } catch (error) {
+      form.setError("root", { type: "manual", message: getApiErrorMessage(error) });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const Root = isMobile ? Drawer : Dialog;
+  const Content = isMobile ? DrawerContent : DialogContent;
+  const Header = isMobile ? DrawerHeader : DialogHeader;
+  const Title = isMobile ? DrawerTitle : DialogTitle;
+  const Description = isMobile ? DrawerDescription : DialogDescription;
+  const Footer = isMobile ? DrawerFooter : DialogFooter;
+
   return (
-    <Dialog
+    <Root
       open={open}
       onOpenChange={(value) => {
-        if (value === false) onClose();
+        if (value === false) {
+          onCloseHandler();
+        }
       }}
     >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Create category</DialogTitle>
-          <DialogDescription>Create a new category to group your transactions</DialogDescription>
-        </DialogHeader>
+      <Content>
+        <Header>
+          <Title>{defaultValues ? "Edit" : "Create"} category</Title>
+          <Description>
+            Category is a way to group your transactions. You can assign a color and aliases to
+            easily identify them.
+          </Description>
+        </Header>
 
         {form.formState.errors.root && (
           <Alert variant="destructive">
@@ -162,7 +235,6 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
 
             <div>
               <FormLabel>Aliases</FormLabel>
-
               <div className="mt-1 space-y-2">
                 {aliases.fields.map((alias, index) => (
                   <FormField
@@ -178,6 +250,11 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                               autoComplete="off"
                               placeholder="Enter an alias"
                               disabled={form.formState.isSubmitting}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && e.currentTarget.value) {
+                                  aliases.append({ value: "" });
+                                }
+                              }}
                             />
                           </FormControl>
                           {index !== 0 && (
@@ -215,22 +292,51 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
           </form>
         </Form>
 
-        <DialogFooter>
-          <Button
-            variant="secondary"
-            disabled={form.formState.isSubmitting}
-            onClick={() => {
-              form.reset();
-              onClose();
-            }}
-          >
-            Cancel
-          </Button>
-          <Button disabled={form.formState.isSubmitting} onClick={form.handleSubmit(onSubmit)}>
-            Submit
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <Footer className={cn("border-t pt-4 sm:pt-5", { "justify-between": defaultValues })}>
+          {!!defaultValues && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  isLoading={isDeleting}
+                  disabled={form.formState.isSubmitting}
+                >
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Deleting this category will also delete all transactions associated with it.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={onDelete}>Yes, delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              disabled={form.formState.isSubmitting}
+              onClick={onCloseHandler}
+            >
+              Cancel
+            </Button>
+            <Button
+              isLoading={form.formState.isSubmitting}
+              disabled={form.formState.isSubmitting}
+              onClick={form.handleSubmit(onSubmit)}
+            >
+              Submit
+            </Button>
+          </div>
+        </Footer>
+      </Content>
+    </Root>
   );
 };

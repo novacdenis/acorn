@@ -7,6 +7,7 @@ export type Database = {
         Row: {
           aliases: string[];
           color: string;
+          created_at: string;
           id: number;
           name: string;
           user_id: string;
@@ -14,6 +15,7 @@ export type Database = {
         Insert: {
           aliases: string[];
           color: string;
+          created_at?: string;
           id?: number;
           name: string;
           user_id: string;
@@ -21,6 +23,7 @@ export type Database = {
         Update: {
           aliases?: string[];
           color?: string;
+          created_at?: string;
           id?: number;
           name?: string;
           user_id?: string;

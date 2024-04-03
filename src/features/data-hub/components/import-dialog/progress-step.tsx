@@ -117,7 +117,7 @@ export const ProgressStep: React.FC = () => {
             </Button>
             {progress.failed > 0 && (
               <Button onClick={onStartImportReview}>
-                Review failed {formatNumber(progress.failed, { notation: "compact" })} transactions
+                Review {formatNumber(progress.failed, { notation: "compact" })} failed transactions
               </Button>
             )}
           </>

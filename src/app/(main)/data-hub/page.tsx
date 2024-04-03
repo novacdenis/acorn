@@ -8,18 +8,23 @@ import {
   SectionHeader,
   SectionTitle,
 } from "@/components/ui/section";
-import { CategoriesTable, FilesTable, ImportDialog, getAllCategories } from "@/features/data-hub";
+import {
+  CATEGORIES_DEFAULT_QUERY,
+  CategoriesTable,
+  ImportDialog,
+  getAllCategories,
+} from "@/features/data-hub";
 
 export const metadata: Metadata = {
-  title: "Import",
+  title: "Data Hub",
 };
 
 export default async function ImportPage() {
   const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
-    queryKey: ["categories"],
-    queryFn: getAllCategories,
+    queryKey: ["categories", CATEGORIES_DEFAULT_QUERY],
+    queryFn: async () => await getAllCategories(CATEGORIES_DEFAULT_QUERY),
   });
 
   return (
@@ -27,24 +32,13 @@ export default async function ImportPage() {
       <div className="container space-y-5">
         <Section>
           <SectionHeader>
-            <SectionTitle>Imported files</SectionTitle>
-            <SectionDescription>
-              Upload your bank statements to categorize your transactions.
-            </SectionDescription>
-          </SectionHeader>
-          <SectionContent>
-            <FilesTable files={[]} />
-          </SectionContent>
-        </Section>
-        <Section className="mt-0">
-          <SectionHeader>
             <SectionTitle>Categories</SectionTitle>
             <SectionDescription>
               Categorize your transactions to get insights into your spending habits.
             </SectionDescription>
           </SectionHeader>
           <SectionContent>
-            <CategoriesTable files={[]} />
+            <CategoriesTable />
           </SectionContent>
         </Section>
       </div>

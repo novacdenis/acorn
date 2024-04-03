@@ -1,3 +1,5 @@
+import type { PageQuery } from "@/types";
+
 export interface DataHubFile {
   id: number;
   name: string;
@@ -17,6 +19,7 @@ export interface Category {
   color: string;
   aliases: string[];
   user_id: string;
+  created_at: string;
 }
 
 export interface CreateCategoryBody {
@@ -24,6 +27,8 @@ export interface CreateCategoryBody {
   color: string;
   aliases: string[];
 }
+
+export interface CategoriesQuery extends PageQuery {}
 
 export interface CreateTransactionBody {
   description: string;

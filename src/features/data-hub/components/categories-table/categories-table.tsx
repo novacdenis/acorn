@@ -1,60 +1,104 @@
 "use client";
 
-import type { DataHubFile } from "../../types";
+import type { CategoriesQuery, Category } from "../../types";
 
 import React from "react";
-import { PlusCircleIcon } from "@heroicons/react/24/outline";
-import { useQuery } from "@tanstack/react-query";
+import { PlusIcon } from "@heroicons/react/20/solid";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Empty, EmptyDescription, EmptyIcon, EmptyTitle } from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/utils";
 
 import { Row } from "./row";
 import { Toolbar } from "./toolbar";
 import { getAllCategories } from "../../actions";
+import { CATEGORIES_DEFAULT_QUERY } from "../../constants";
 import { CategoryForm } from "../category-form";
 
-export interface CategoriesTableProps {
-  files: DataHubFile[];
+interface CategoriesTableContextValue {
+  query: CategoriesQuery;
+  onChangeQuery: (options: Partial<CategoriesQuery>) => void;
+  onOpenForm: () => void;
 }
 
-export const CategoriesTable: React.FC<CategoriesTableProps> = ({ files }) => {
-  const { data: categories, refetch: refetchCategories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => await getAllCategories(),
+const CategoriesTableContext = React.createContext<CategoriesTableContextValue | null>(null);
+
+export const useCategoriesTable = () => {
+  const context = React.useContext(CategoriesTableContext);
+
+  if (!context) {
+    throw new Error(
+      "useCategoriesTableContext must be used within a CategoriesTableContextProvider"
+    );
+  }
+  return context;
+};
+
+export const CategoriesTable: React.FC = () => {
+  const [query, setQuery] = React.useState<CategoriesQuery>(CATEGORIES_DEFAULT_QUERY);
+  const [isFormOpen, setIsFormOpen] = React.useState(false);
+  const [selectedCategory, setSelectedCategory] = React.useState<Category>();
+
+  const { data, isLoading, isFetching, refetch } = useQuery({
+    queryKey: ["categories", query],
+    queryFn: async () => await getAllCategories(query),
+    placeholderData: keepPreviousData,
   });
 
-  const [isCategoryFormOpen, setIsCategoryFormOpen] = React.useState(false);
+  const loading = isLoading || isFetching;
 
   return (
-    <>
-      <div className="flex items-center justify-between gap-2">
-        <Toolbar />
-        <Button
-          className="aspect-square px-0 sm:aspect-auto sm:px-3"
-          onClick={() => setIsCategoryFormOpen(true)}
-        >
-          <PlusCircleIcon className="h-6 w-6 sm:h-5 sm:w-5" />
-          <span className="ml-2 hidden sm:block">Create category</span>
-        </Button>
-        <button onClick={() => refetchCategories()} className="text-primary">
-          refresh
-        </button>
-      </div>
-      <div className="mt-5 overflow-hidden rounded-2xl border border-primary/10">
-        <ul role="table" className="relative list-none [&>li:not(:first-child)]:border-t">
-          {files.map((file) => (
-            <Row key={file.id} file={file} />
+    <CategoriesTableContext.Provider
+      value={{
+        query,
+        onChangeQuery: setQuery,
+        onOpenForm: () => setIsFormOpen(true),
+      }}
+    >
+      <Toolbar />
+
+      <div className="relative mt-5 overflow-hidden rounded-2xl border border-primary/10">
+        <ul role="table" className="list-none divide-y divide-primary/10 overflow-hidden">
+          {data?.data.map((category) => (
+            <Row
+              key={category.id}
+              data={category}
+              onClick={(category) => {
+                setSelectedCategory(category);
+                setIsFormOpen(true);
+              }}
+            />
           ))}
-          {categories?.map((category) => <p key={category.id}>{category.name}</p>)}
         </ul>
+
+        {!data?.data.length && (
+          <Empty className={cn({ "opacity-0": loading })}>
+            <EmptyIcon />
+            <EmptyTitle>No categories found</EmptyTitle>
+            <EmptyDescription>Try changing the filters or creating a new category</EmptyDescription>
+            <Button className="mt-5" onClick={() => setIsFormOpen(true)}>
+              <PlusIcon className="h-5 w-5" />
+              <span className="ml-2">Create category</span>
+            </Button>
+          </Empty>
+        )}
+
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+            <Spinner isLoading className="h-10 w-10" />
+          </div>
+        )}
       </div>
-      {/* <CategoryForm
-        open={isCategoryFormOpen}
-        onClose={() => {
-          setIsCategoryFormOpen(false);
-          // getAllCategories().then(console.log);
-          refetchCategories();
-        }}
-      /> */}
-    </>
+
+      <CategoryForm
+        key={selectedCategory?.id}
+        open={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmitSuccess={() => refetch()}
+        onDeleteSuccess={() => refetch()}
+        defaultValues={selectedCategory}
+      />
+    </CategoriesTableContext.Provider>
   );
 };

@@ -1,4 +1,4 @@
-import type { Bank, CategoriesQuery } from "../types";
+import type { Bank, CategoriesQuery, TransactionsQuery } from "../types";
 
 import { sizeToBytes } from "@/utils";
 
@@ -27,3 +27,10 @@ export const CATEGORIES_DEFAULT_QUERY = {
   orderBy: "created_at",
   orderDirection: "desc",
 } satisfies CategoriesQuery;
+
+export const TRANSACTIONS_DEFAULT_QUERY = {
+  page: 1,
+  take: 10,
+  orderBy: "timestamp",
+  orderDirection: "desc",
+} satisfies TransactionsQuery;

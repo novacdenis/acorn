@@ -10,7 +10,7 @@ import styles from "./row.module.css";
 
 export interface RowProps {
   data: Category;
-  onClick: (category: Category) => void;
+  onClick: (data: Category) => void;
 }
 
 export const Row: React.FC<RowProps> = ({ data, onClick }) => {
@@ -21,8 +21,8 @@ export const Row: React.FC<RowProps> = ({ data, onClick }) => {
       role="row"
       tabIndex={0}
       className={cn(
-        "grid cursor-pointer gap-x-4 gap-y-1 overflow-hidden p-2.5 transition-colors active:bg-primary/10",
-        "first:rounded-t-2xl last:rounded-b-2xl md:p-4 md:hover:bg-primary/10",
+        "grid cursor-pointer gap-x-2.5 gap-y-1 overflow-hidden p-2.5 transition-colors active:bg-primary/10",
+        "first:rounded-t-2xl last:rounded-b-2xl md:gap-x-4 md:p-4 md:hover:bg-primary/10",
         styles.area
       )}
       onClick={() => onClick(data)}

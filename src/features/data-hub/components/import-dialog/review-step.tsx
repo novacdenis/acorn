@@ -147,8 +147,8 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories?.length ? (
-                        categories.map((category) => (
+                      {categories?.data?.length ? (
+                        categories.data.map((category) => (
                           <SelectItem key={category.id} value={category.id.toString()}>
                             {category.name}
                           </SelectItem>
@@ -292,7 +292,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
       <CategoryForm
         open={isCategoryFormOpen}
         onClose={() => setIsCategoryFormOpen(false)}
-        onSuccess={() => {
+        onSubmitSuccess={() => {
           setIsCategoryFormOpen(false);
           refetchCategories();
         }}

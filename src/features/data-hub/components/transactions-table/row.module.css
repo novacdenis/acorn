@@ -1,0 +1,12 @@
+.area {
+  grid-template-areas: "description amount" "category timestamp";
+  grid-template-columns: 1fr auto;
+  place-items: center normal;
+}
+
+@screen md {
+  .area {
+    grid-template-areas: "description amount category timestamp";
+    grid-template-columns: 2.5fr 1fr 1fr 1fr;
+  }
+}

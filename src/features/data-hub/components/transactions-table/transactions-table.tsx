@@ -1,6 +1,6 @@
 "use client";
 
-import type { CategoriesQuery, Category } from "../../types";
+import type { Transaction, TransactionsQuery } from "../../types";
 
 import React from "react";
 import { PlusIcon } from "@heroicons/react/20/solid";
@@ -12,42 +12,42 @@ import { cn } from "@/utils";
 
 import { Row } from "./row";
 import { Toolbar } from "./toolbar";
-import { getAllCategories } from "../../actions";
-import { CATEGORIES_DEFAULT_QUERY } from "../../constants";
-import { CategoryForm } from "../category-form";
+import { getAllTransactions } from "../../actions";
+import { TRANSACTIONS_DEFAULT_QUERY } from "../../constants";
+import { TransactionForm } from "../transaction-form";
 
-interface CategoriesTableContextValue {
-  query: CategoriesQuery;
-  onChangeQuery: (options: Partial<CategoriesQuery>) => void;
+interface TransactionsTableContextValue {
+  query: TransactionsQuery;
+  onChangeQuery: (options: Partial<TransactionsQuery>) => void;
   onOpenForm: () => void;
 }
 
-const CategoriesTableContext = React.createContext<CategoriesTableContextValue | null>(null);
+const TransactionsTableContext = React.createContext<TransactionsTableContextValue | null>(null);
 
-export const useCategoriesTable = () => {
-  const context = React.useContext(CategoriesTableContext);
+export const useTransactionsTable = () => {
+  const context = React.useContext(TransactionsTableContext);
 
   if (!context) {
-    throw new Error("useCategoriesTable must be used within a CategoriesTableContextProvider");
+    throw new Error("useTransactionsTable must be used within a TransactionsTableContextProvider");
   }
   return context;
 };
 
-export const CategoriesTable: React.FC = () => {
-  const [query, setQuery] = React.useState<CategoriesQuery>(CATEGORIES_DEFAULT_QUERY);
+export const TransactionsTable: React.FC = () => {
+  const [query, setQuery] = React.useState<TransactionsQuery>(TRANSACTIONS_DEFAULT_QUERY);
   const [isFormOpen, setIsFormOpen] = React.useState(false);
-  const [selectedCategory, setSelectedCategory] = React.useState<Category>();
+  const [selectedTransaction, setSelectedTransaction] = React.useState<Transaction>();
 
   const { data, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ["categories", query],
-    queryFn: async () => await getAllCategories(query),
+    queryKey: ["transactions", query],
+    queryFn: async () => await getAllTransactions(query),
     placeholderData: keepPreviousData,
   });
 
   const loading = isLoading || isFetching;
 
   return (
-    <CategoriesTableContext.Provider
+    <TransactionsTableContext.Provider
       value={{
         query,
         onChangeQuery: setQuery,
@@ -58,12 +58,12 @@ export const CategoriesTable: React.FC = () => {
 
       <div className="relative mt-5 overflow-hidden rounded-2xl border border-primary/10">
         <ul role="table" className="list-none divide-y divide-primary/10 overflow-hidden">
-          {data?.data.map((category) => (
+          {data?.data.map((transaction) => (
             <Row
-              key={category.id}
-              data={category}
-              onClick={(category) => {
-                setSelectedCategory(category);
+              key={transaction.id}
+              data={transaction}
+              onClick={(transaction) => {
+                setSelectedTransaction(transaction);
                 setIsFormOpen(true);
               }}
             />
@@ -73,13 +73,11 @@ export const CategoriesTable: React.FC = () => {
         {!data?.data.length && (
           <Empty className={cn({ "opacity-0": loading })}>
             <EmptyIcon />
-            <EmptyTitle>No categories found</EmptyTitle>
-            <EmptyDescription>
-              Try changing the filters or creating a new category.
-            </EmptyDescription>
+            <EmptyTitle>No transactions found</EmptyTitle>
+            <EmptyDescription>Try changing the filters or importing transactions.</EmptyDescription>
             <Button className="mt-5" onClick={() => setIsFormOpen(true)}>
               <PlusIcon className="h-5 w-5" />
-              <span className="ml-2">Create category</span>
+              <span className="ml-2">Import transactions</span>
             </Button>
           </Empty>
         )}
@@ -91,14 +89,14 @@ export const CategoriesTable: React.FC = () => {
         )}
       </div>
 
-      <CategoryForm
-        key={selectedCategory?.id}
+      <TransactionForm
+        key={selectedTransaction?.id}
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmitSuccess={() => refetch()}
         onDeleteSuccess={() => refetch()}
-        defaultValues={selectedCategory}
+        defaultValues={selectedTransaction}
       />
-    </CategoriesTableContext.Provider>
+    </TransactionsTableContext.Provider>
   );
 };

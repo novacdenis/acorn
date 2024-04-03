@@ -51,7 +51,7 @@ import { cn, generateRandomHex, getApiErrorMessage } from "@/utils";
 
 import { createCategory, deleteCategory, updateCategory } from "../../actions";
 
-const schema = v.object({
+const scheme = v.object({
   name: v.string([
     v.minLength(1, "Name is required"),
     v.maxLength(100, "Name is too long, max 100 characters"),
@@ -60,7 +60,7 @@ const schema = v.object({
   aliases: v.array(v.object({ value: v.string([]) })),
 });
 
-type FormValues = v.Input<typeof schema>;
+type FormValues = v.Input<typeof scheme>;
 
 export interface CategoryFormProps {
   open: boolean;
@@ -86,7 +86,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
       color: defaultValues?.color ?? "#000000",
       aliases: (defaultValues?.aliases ?? [""]).map((alias) => ({ value: alias })),
     },
-    resolver: valibotResolver(schema),
+    resolver: valibotResolver(scheme),
   });
   const aliases = useFieldArray({
     control: form.control,

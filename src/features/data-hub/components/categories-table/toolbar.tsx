@@ -53,7 +53,7 @@ export const Toolbar: React.FC = () => {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="aspect-square px-0 sm:aspect-auto sm:px-3" onClick={onOpenForm}>
+            <Button className="aspect-square px-0 sm:aspect-auto sm:px-3">
               <ArrowsUpDownIcon className="h-5 w-5" />
               <span className="ml-2 hidden sm:block">Sort by</span>
             </Button>
@@ -68,12 +68,8 @@ export const Toolbar: React.FC = () => {
             >
               <DropdownMenuRadioItem value="name|asc">Name: A to Z</DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="name|desc">Name: Z to A</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="created_at|asc">
-                Created at: Oldest
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="created_at|desc">
-                Created at: Newest
-              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="created_at|asc">Date: Oldest</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="created_at|desc">Date: Newest</DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>

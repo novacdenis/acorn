@@ -1,6 +1,6 @@
 .area {
   grid-template-areas: "name aliases" "created_at aliases";
-  grid-template-columns: 144px 1fr;
+  grid-template-columns: auto 1fr;
   place-items: start normal;
 }
 
@@ -8,5 +8,6 @@
   .area {
     grid-template-areas: "name created_at aliases";
     grid-template-columns: 1fr 1fr 2fr;
+    place-items: center normal;
   }
 }

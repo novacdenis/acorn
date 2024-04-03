@@ -41,10 +41,13 @@ export interface Transaction {
   id: number;
   description: string;
   category_id: number;
+  category: Category | null;
   user_id: string;
   amount: number;
   timestamp: string;
 }
+
+export interface TransactionsQuery extends PageQuery {}
 
 export type Bank = "vb";
 

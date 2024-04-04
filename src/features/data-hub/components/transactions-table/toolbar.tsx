@@ -1,11 +1,17 @@
 import React from "react";
-import { ArrowsUpDownIcon, TagIcon } from "@heroicons/react/16/solid";
+import {
+  ArrowsUpDownIcon,
+  CloudArrowUpIcon,
+  PlusIcon as PlusIcon16,
+  TagIcon,
+} from "@heroicons/react/16/solid";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { MagnifyingGlassIcon, FunnelIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuShortcut,
@@ -19,10 +25,12 @@ import { Label } from "@/components/ui/label";
 import { useDebouncedCallback } from "@/hooks";
 
 import { useTransactionsTable } from "./transactions-table";
+import { useImportDialogStore } from "../import-dialog";
 
 export const Toolbar: React.FC = () => {
   const { query, onChangeQuery, onOpenForm } = useTransactionsTable();
 
+  const [setIsImportOpen] = useImportDialogStore((store) => [store.onOpenChange]);
   const [filter, setFilter] = React.useState(query?.filter ?? "");
 
   const debouncedSetQueryFilter = useDebouncedCallback(
@@ -117,10 +125,28 @@ export const Toolbar: React.FC = () => {
         </DropdownMenu>
       </div>
 
-      <Button className="aspect-square px-0 sm:aspect-auto sm:px-3" onClick={onOpenForm}>
-        <PlusIcon className="h-5 w-5" />
-        <span className="ml-2 hidden sm:block">Create transaction</span>
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button className="aspect-square px-0 sm:aspect-auto sm:px-3">
+            <PlusIcon className="h-5 w-5" />
+            <span className="ml-2 hidden sm:block">Add transactions</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={onOpenForm}>
+            <DropdownMenuShortcut>
+              <PlusIcon16 className="h-4 w-4" />
+            </DropdownMenuShortcut>
+            <span className="ml-3">Create transaction</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsImportOpen(true)}>
+            <DropdownMenuShortcut>
+              <CloudArrowUpIcon className="h-4 w-4" />
+            </DropdownMenuShortcut>
+            <span className="ml-3">Import transactions</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };

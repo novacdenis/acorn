@@ -8,11 +8,7 @@ import {
   SectionHeader,
   SectionTitle,
 } from "@/components/ui/section";
-import {
-  CategoriesTableSkeleton,
-  ImportDialog,
-  TransactionsTableSkeleton,
-} from "@/features/data-hub";
+import { CategoriesTableSkeleton, TransactionsTableSkeleton } from "@/features/data-hub";
 
 import { Categories } from "./categories";
 import { Transactions } from "./transactions";
@@ -23,43 +19,32 @@ export const metadata: Metadata = {
 
 export default async function ImportPage() {
   return (
-    <>
-      <div className="container">
-        <React.Suspense
-          fallback={
-            <Section>
-              <SectionHeader>
-                <SectionTitle>Transactions</SectionTitle>
-                <SectionDescription>Track financial activities over time.</SectionDescription>
-              </SectionHeader>
-              <SectionContent>
-                <TransactionsTableSkeleton />
-              </SectionContent>
-            </Section>
-          }
-        >
-          <Transactions />
-        </React.Suspense>
+    <div className="container">
+      <Section>
+        <SectionHeader>
+          <SectionTitle>Transactions</SectionTitle>
+          <SectionDescription>Track financial activities over time.</SectionDescription>
+        </SectionHeader>
+        <SectionContent>
+          <React.Suspense fallback={<TransactionsTableSkeleton />}>
+            <Transactions />
+          </React.Suspense>
+        </SectionContent>
+      </Section>
 
-        <React.Suspense
-          fallback={
-            <Section>
-              <SectionHeader>
-                <SectionTitle>Categories</SectionTitle>
-                <SectionDescription>
-                  Manage categories for tracking financial activities.
-                </SectionDescription>
-              </SectionHeader>
-              <SectionContent>
-                <CategoriesTableSkeleton />
-              </SectionContent>
-            </Section>
-          }
-        >
-          <Categories />
-        </React.Suspense>
-      </div>
-      <ImportDialog />
-    </>
+      <Section className="mt-5">
+        <SectionHeader>
+          <SectionTitle>Categories</SectionTitle>
+          <SectionDescription>
+            Manage categories for tracking financial activities.
+          </SectionDescription>
+        </SectionHeader>
+        <SectionContent>
+          <React.Suspense fallback={<CategoriesTableSkeleton />}>
+            <Categories />
+          </React.Suspense>
+        </SectionContent>
+      </Section>
+    </div>
   );
 }

@@ -4,7 +4,14 @@ import { cn } from "@/utils";
 
 import styles from "./row.module.css";
 
-export const CategoriesTableSkeleton: React.FC = () => {
+export interface CategoriesTableSkeletonProps {
+  /** The number of rows to render. */
+  length?: number;
+}
+
+export const CategoriesTableSkeleton: React.FC<CategoriesTableSkeletonProps> = ({
+  length = 10,
+}) => {
   return (
     <>
       <div className="flex items-center justify-between gap-2">
@@ -15,7 +22,7 @@ export const CategoriesTableSkeleton: React.FC = () => {
         <Skeleton className="h-10 w-10 shrink-0 sm:w-44" />
       </div>
       <div className="relative mt-5 divide-y divide-primary/10 overflow-hidden rounded-2xl border border-primary/10">
-        {Array.from({ length: 10 }).map((_, index) => (
+        {Array.from({ length }).map((_, index) => (
           <div
             key={index}
             className={cn(

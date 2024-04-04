@@ -290,9 +290,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
       <CategoryForm
         open={isCategoryFormOpen}
         onClose={() => setIsCategoryFormOpen(false)}
-        onSubmitSuccess={() => {
-          setIsCategoryFormOpen(false);
-          refetchCategories();
+        onSubmitSuccess={async (category) => {
+          await refetchCategories();
+          form.setValue("category_id", category.id);
         }}
       />
     </>

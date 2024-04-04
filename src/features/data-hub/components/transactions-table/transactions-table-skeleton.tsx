@@ -4,7 +4,14 @@ import { cn } from "@/utils";
 
 import styles from "./row.module.css";
 
-export const TransactionsTableSkeleton: React.FC = () => {
+export interface TransactionsTableSkeletonProps {
+  /** The number of rows to render. */
+  length?: number;
+}
+
+export const TransactionsTableSkeleton: React.FC<TransactionsTableSkeletonProps> = ({
+  length = 10,
+}) => {
   return (
     <>
       <div className="flex items-center justify-between gap-2">
@@ -14,23 +21,19 @@ export const TransactionsTableSkeleton: React.FC = () => {
         </div>
         <Skeleton className="h-10 w-10 shrink-0 sm:w-44" />
       </div>
-      <div className="relative mt-5 divide-y divide-primary/10 overflow-hidden rounded-2xl border border-primary/10">
-        {Array.from({ length: 10 }).map((_, index) => (
+      <div className="relative mt-5 divide-y divide-primary/10 rounded-2xl border border-primary/10">
+        {Array.from({ length }).map((_, index) => (
           <div
             key={index}
             className={cn(
-              "grid cursor-pointer gap-x-2.5 gap-y-1 overflow-hidden p-2.5",
+              "grid cursor-pointer gap-x-2.5 gap-y-1 p-2.5",
               "first:rounded-t-2xl last:rounded-b-2xl md:gap-x-4 md:p-4",
               styles.area
             )}
           >
-            <div
-              className="flex h-5 items-center overflow-hidden md:h-6"
-              style={{ gridArea: "description" }}
-            >
-              <Skeleton className="h-3.5 w-3.5 shrink-0 md:h-4 md:w-4" />
+            <div className="flex h-5 items-center md:h-6" style={{ gridArea: "description" }}>
               <Skeleton
-                className="ml-1.5 h-3.5 md:ml-2 md:h-4"
+                className="h-3.5 md:h-4"
                 style={{
                   width: `${Math.floor(Math.random() * 200) + 100}px`,
                 }}
@@ -48,8 +51,9 @@ export const TransactionsTableSkeleton: React.FC = () => {
               />
             </div>
             <div className="flex h-5 items-center md:h-6" style={{ gridArea: "category" }}>
+              <Skeleton className="h-3.5 w-3.5 shrink-0 md:h-4 md:w-4" />
               <Skeleton
-                className="h-3.5 md:h-4"
+                className="ml-1.5 h-3.5 md:ml-2 md:h-4"
                 style={{
                   width: `${Math.floor(Math.random() * 50) + 100}px`,
                 }}

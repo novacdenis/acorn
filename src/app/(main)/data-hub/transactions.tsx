@@ -1,12 +1,5 @@
 import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
 import {
-  Section,
-  SectionContent,
-  SectionDescription,
-  SectionHeader,
-  SectionTitle,
-} from "@/components/ui/section";
-import {
   TRANSACTIONS_DEFAULT_QUERY,
   TransactionsTable,
   getAllTransactions,
@@ -22,15 +15,7 @@ export async function Transactions() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <Section>
-        <SectionHeader>
-          <SectionTitle>Transactions</SectionTitle>
-          <SectionDescription>Track financial activities over time.</SectionDescription>
-        </SectionHeader>
-        <SectionContent>
-          <TransactionsTable />
-        </SectionContent>
-      </Section>
+      <TransactionsTable />
     </HydrationBoundary>
   );
 }

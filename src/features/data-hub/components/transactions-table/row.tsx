@@ -31,9 +31,22 @@ export const Row: React.FC<RowProps> = ({ data, onClick }) => {
       }}
     >
       <p
+        className="truncate text-sm text-muted-foreground md:text-base md:text-primary"
+        style={{ gridArea: "description" }}
+      >
+        {data.description || "Uncategorized"}
+      </p>
+      <p
+        title={formatNumber(data.amount, { decimals: 2 })}
+        className="justify-self-end text-sm md:justify-self-start md:text-base"
+        style={{ gridArea: "amount" }}
+      >
+        {formatNumber(data.amount, { decimals: 2 })} MDL
+      </p>
+      <p
         title={data.description}
         className="flex items-center overflow-hidden"
-        style={{ gridArea: "description" }}
+        style={{ gridArea: "category" }}
       >
         <span
           className="block h-2.5 w-2.5 shrink-0 rounded-full md:h-3 md:w-3"
@@ -41,21 +54,11 @@ export const Row: React.FC<RowProps> = ({ data, onClick }) => {
             backgroundColor: data.category?.color,
           }}
         />
-        <span className="ml-1.5 truncate text-sm md:ml-2 md:text-base">{data.description}</span>
+        <span className="ml-1.5 truncate text-sm md:ml-2 md:text-base">
+          {data.category?.name || "Uncategorized"}
+        </span>
       </p>
-      <p
-        title={formatNumber(data.amount, { decimals: 2 })}
-        className="justify-self-end text-sm font-medium md:justify-self-start md:text-base"
-        style={{ gridArea: "amount" }}
-      >
-        {formatNumber(data.amount, { decimals: 2 })} MDL
-      </p>
-      <p
-        className="truncate text-sm text-muted-foreground md:text-base md:text-primary"
-        style={{ gridArea: "category" }}
-      >
-        {data.category?.name || "Uncategorized"}
-      </p>
+
       <time
         dateTime={data.timestamp}
         className="truncate text-sm text-muted-foreground md:text-base md:text-primary"

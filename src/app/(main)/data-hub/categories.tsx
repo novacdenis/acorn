@@ -1,11 +1,4 @@
 import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
-import {
-  Section,
-  SectionContent,
-  SectionDescription,
-  SectionHeader,
-  SectionTitle,
-} from "@/components/ui/section";
 import { CATEGORIES_DEFAULT_QUERY, CategoriesTable, getAllCategories } from "@/features/data-hub";
 
 export async function Categories() {
@@ -18,17 +11,7 @@ export async function Categories() {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <Section className="mt-5">
-        <SectionHeader>
-          <SectionTitle>Categories</SectionTitle>
-          <SectionDescription>
-            Manage categories for tracking financial activities.
-          </SectionDescription>
-        </SectionHeader>
-        <SectionContent>
-          <CategoriesTable />
-        </SectionContent>
-      </Section>
+      <CategoriesTable />
     </HydrationBoundary>
   );
 }

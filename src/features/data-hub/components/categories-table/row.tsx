@@ -43,9 +43,7 @@ export const Row: React.FC<RowProps> = ({ data, onClick }) => {
             backgroundColor: data.color,
           }}
         />
-        <span className="ml-1.5 truncate text-sm font-medium md:ml-2 md:text-base">
-          {data.name}
-        </span>
+        <span className="ml-1.5 truncate text-sm md:ml-2 md:text-base">{data.name}</span>
       </p>
       <time
         dateTime={data.created_at}

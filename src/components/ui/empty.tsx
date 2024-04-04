@@ -1,5 +1,5 @@
 import React from "react";
-import { FolderPlusIcon, InboxIcon } from "@heroicons/react/24/outline";
+import { FolderPlusIcon } from "@heroicons/react/24/outline";
 import { cn } from "@/utils";
 
 export const Empty = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(

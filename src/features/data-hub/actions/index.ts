@@ -137,7 +137,7 @@ export async function getAllTransactions(
 
   const request = supabase
     .from("transactions")
-    .select("*, category:categories(*)")
+    .select("*, category:categories(*)", { count: "exact" })
     .eq("user_id", user.data.user.id);
   const { filter, page = 1, take = 10, orderBy, orderDirection } = query ?? {};
 

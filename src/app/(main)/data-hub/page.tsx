@@ -41,24 +41,22 @@ export default async function ImportPage() {
       <div className="container space-y-5">
         <Section>
           <SectionHeader>
-            <SectionTitle>Categories</SectionTitle>
-            <SectionDescription>
-              Categorize your transactions to get insights into your spending habits.
-            </SectionDescription>
+            <SectionTitle>Transactions</SectionTitle>
+            <SectionDescription>Track financial activities over time.</SectionDescription>
           </SectionHeader>
           <SectionContent>
-            <CategoriesTable />
+            <TransactionsTable />
           </SectionContent>
         </Section>
         <Section>
           <SectionHeader>
             <SectionTitle>Categories</SectionTitle>
             <SectionDescription>
-              Categorize your transactions to get insights into your spending habits.
+              Manage categories for tracking financial activities.
             </SectionDescription>
           </SectionHeader>
           <SectionContent>
-            <TransactionsTable />
+            <CategoriesTable />
           </SectionContent>
         </Section>
       </div>

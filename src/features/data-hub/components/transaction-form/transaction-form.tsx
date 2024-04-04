@@ -85,8 +85,8 @@ type FormValues = v.Input<typeof scheme>;
 export interface TransactionFormProps {
   open: boolean;
   onClose: () => void;
-  onSubmitSuccess?: (transaction: Transaction) => void;
-  onDeleteSuccess?: (transaction: Transaction) => void;
+  onSubmitSuccess?: (transaction: Transaction) => Promise<void> | void;
+  onDeleteSuccess?: (transaction: Transaction) => Promise<void> | void;
   defaultValues?: Transaction;
 }
 
@@ -143,7 +143,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       }
 
       if (onSubmitSuccess) {
-        onSubmitSuccess(response);
+        await onSubmitSuccess(response);
       }
       onCloseHandler();
     } catch (error) {
@@ -161,7 +161,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       await deleteTransaction(defaultValues.id);
 
       if (onDeleteSuccess) {
-        onDeleteSuccess(defaultValues);
+        await onDeleteSuccess(defaultValues);
       }
       onCloseHandler();
     } catch (error) {
@@ -418,8 +418,8 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
       <CategoryForm
         open={isCategoryFormOpen}
         onClose={() => setIsCategoryFormOpen(false)}
-        onSubmitSuccess={(category) => {
-          refetch();
+        onSubmitSuccess={async (category) => {
+          await refetch();
           form.setValue("category_id", category.id);
         }}
       />

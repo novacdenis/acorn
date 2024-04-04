@@ -1,7 +1,7 @@
 import type { CreateTransactionBody, ExtractedTransaction } from "../../types";
 
 import React from "react";
-import { PlusCircleIcon } from "@heroicons/react/16/solid";
+import { PlusIcon } from "@heroicons/react/20/solid";
 import { CalendarIcon, ClockIcon } from "@heroicons/react/24/outline";
 import { valibotResolver } from "@hookform/resolvers/valibot";
 import { useQuery } from "@tanstack/react-query";
@@ -57,13 +57,13 @@ interface ReviewFormProps {
 }
 
 const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
+  const [isCategoryFormOpen, setIsCategoryFormOpen] = React.useState(false);
+
   const { isMobile } = useImportDialogContext();
   const { data: categories, refetch: refetchCategories } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => await getAllCategories(),
   });
-
-  const [isCategoryFormOpen, setIsCategoryFormOpen] = React.useState(false);
 
   const form = useForm<FormValues>({
     defaultValues: {
@@ -147,7 +147,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories?.data?.length ? (
+                      {categories?.data.length ? (
                         categories.data.map((category) => (
                           <SelectItem key={category.id} value={category.id.toString()}>
                             {category.name}
@@ -164,12 +164,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
                     variant="ghost"
                     className="col-span-1 border border-dashed bg-background"
                     disabled={form.formState.isSubmitting}
-                    onClick={() => {
-                      setIsCategoryFormOpen(true);
-                      refetchCategories();
-                    }}
+                    onClick={() => setIsCategoryFormOpen(true)}
                   >
-                    <PlusCircleIcon className="h-4 w-4" />
+                    <PlusIcon className="h-5 w-5" />
                     <span className="ml-2">Create</span>
                   </Button>
                 </fieldset>
@@ -192,6 +189,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
                       inputMode="decimal"
                       placeholder="Enter an amount"
                       className="pr-14"
+                      value={field.value ?? ""}
                       disabled={form.formState.isSubmitting}
                     />
                     <span className="pointer-events-none absolute inset-y-0 right-0 flex w-14 items-center px-3 text-sm font-semibold text-muted-foreground">

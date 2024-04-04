@@ -10,6 +10,7 @@ import { Empty, EmptyDescription, EmptyIcon, EmptyTitle } from "@/components/ui/
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/utils";
 
+import { Pagination } from "./pagination";
 import { Row } from "./row";
 import { Toolbar } from "./toolbar";
 import { getAllTransactions } from "../../actions";
@@ -89,12 +90,22 @@ export const TransactionsTable: React.FC = () => {
         )}
       </div>
 
+      <Pagination
+        page={data?.meta.page ?? 1}
+        total={data?.meta.total ?? 0}
+        take={data?.meta.take ?? 10}
+      />
+
       <TransactionForm
         key={selectedTransaction?.id}
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        onSubmitSuccess={() => refetch()}
-        onDeleteSuccess={() => refetch()}
+        onSubmitSuccess={() => {
+          refetch();
+        }}
+        onDeleteSuccess={() => {
+          refetch();
+        }}
         defaultValues={selectedTransaction}
       />
     </TransactionsTableContext.Provider>

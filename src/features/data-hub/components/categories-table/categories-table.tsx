@@ -10,6 +10,7 @@ import { Empty, EmptyDescription, EmptyIcon, EmptyTitle } from "@/components/ui/
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/utils";
 
+import { Pagination } from "./pagination";
 import { Row } from "./row";
 import { Toolbar } from "./toolbar";
 import { getAllCategories } from "../../actions";
@@ -91,12 +92,22 @@ export const CategoriesTable: React.FC = () => {
         )}
       </div>
 
+      <Pagination
+        page={data?.meta.page ?? 1}
+        total={data?.meta.total ?? 0}
+        take={data?.meta.take ?? 10}
+      />
+
       <CategoryForm
         key={selectedCategory?.id}
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        onSubmitSuccess={() => refetch()}
-        onDeleteSuccess={() => refetch()}
+        onSubmitSuccess={() => {
+          refetch();
+        }}
+        onDeleteSuccess={() => {
+          refetch();
+        }}
         defaultValues={selectedCategory}
       />
     </CategoriesTableContext.Provider>

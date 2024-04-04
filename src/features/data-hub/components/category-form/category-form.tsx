@@ -65,8 +65,8 @@ type FormValues = v.Input<typeof scheme>;
 export interface CategoryFormProps {
   open: boolean;
   onClose: () => void;
-  onSubmitSuccess?: (category: Category) => void;
-  onDeleteSuccess?: (category: Category) => void;
+  onSubmitSuccess?: (category: Category) => Promise<void> | void;
+  onDeleteSuccess?: (category: Category) => Promise<void> | void;
   defaultValues?: Category;
 }
 
@@ -116,7 +116,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
       }
 
       if (onSubmitSuccess) {
-        onSubmitSuccess(response);
+        await onSubmitSuccess(response);
       }
       onCloseHandler();
     } catch (error) {
@@ -134,7 +134,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
       await deleteCategory(defaultValues.id);
 
       if (onDeleteSuccess) {
-        onDeleteSuccess(defaultValues);
+        await onDeleteSuccess(defaultValues);
       }
       onCloseHandler();
     } catch (error) {

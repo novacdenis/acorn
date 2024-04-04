@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query";
+import React from "react";
 import {
   Section,
   SectionContent,
@@ -9,58 +9,57 @@ import {
   SectionTitle,
 } from "@/components/ui/section";
 import {
-  CATEGORIES_DEFAULT_QUERY,
-  CategoriesTable,
+  CategoriesTableSkeleton,
   ImportDialog,
-  TRANSACTIONS_DEFAULT_QUERY,
-  TransactionsTable,
-  getAllCategories,
-  getAllTransactions,
+  TransactionsTableSkeleton,
 } from "@/features/data-hub";
+
+import { Categories } from "./categories";
+import { Transactions } from "./transactions";
 
 export const metadata: Metadata = {
   title: "Data Hub",
 };
 
 export default async function ImportPage() {
-  const queryClient = new QueryClient();
-
-  await Promise.all([
-    queryClient.prefetchQuery({
-      queryKey: ["categories", CATEGORIES_DEFAULT_QUERY],
-      queryFn: async () => await getAllCategories(CATEGORIES_DEFAULT_QUERY),
-    }),
-    queryClient.prefetchQuery({
-      queryKey: ["transactions", TRANSACTIONS_DEFAULT_QUERY],
-      queryFn: async () => await getAllTransactions(TRANSACTIONS_DEFAULT_QUERY),
-    }),
-  ]);
-
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className="container space-y-5">
-        <Section>
-          <SectionHeader>
-            <SectionTitle>Transactions</SectionTitle>
-            <SectionDescription>Track financial activities over time.</SectionDescription>
-          </SectionHeader>
-          <SectionContent>
-            <TransactionsTable />
-          </SectionContent>
-        </Section>
-        <Section>
-          <SectionHeader>
-            <SectionTitle>Categories</SectionTitle>
-            <SectionDescription>
-              Manage categories for tracking financial activities.
-            </SectionDescription>
-          </SectionHeader>
-          <SectionContent>
-            <CategoriesTable />
-          </SectionContent>
-        </Section>
+    <>
+      <div className="container">
+        <React.Suspense
+          fallback={
+            <Section>
+              <SectionHeader>
+                <SectionTitle>Transactions</SectionTitle>
+                <SectionDescription>Track financial activities over time.</SectionDescription>
+              </SectionHeader>
+              <SectionContent>
+                <TransactionsTableSkeleton />
+              </SectionContent>
+            </Section>
+          }
+        >
+          <Transactions />
+        </React.Suspense>
+
+        <React.Suspense
+          fallback={
+            <Section>
+              <SectionHeader>
+                <SectionTitle>Categories</SectionTitle>
+                <SectionDescription>
+                  Manage categories for tracking financial activities.
+                </SectionDescription>
+              </SectionHeader>
+              <SectionContent>
+                <CategoriesTableSkeleton />
+              </SectionContent>
+            </Section>
+          }
+        >
+          <Categories />
+        </React.Suspense>
       </div>
       <ImportDialog />
-    </HydrationBoundary>
+    </>
   );
 }

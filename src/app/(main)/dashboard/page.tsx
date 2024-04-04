@@ -7,7 +7,8 @@ import {
   SectionHeader,
   SectionTitle,
 } from "@/components/ui/section";
-import { ExpensesChart, Metric, TransactionTable } from "@/features/monitoring";
+import { TransactionsTable } from "@/features/data-hub";
+import { ExpensesChart, Metric } from "@/features/monitoring";
 
 const data = [
   { timestamp: new Date("2021-01-01").getTime() },
@@ -97,15 +98,7 @@ export default function DashboardPage() {
           <SectionDescription>Track financial activities over time.</SectionDescription>
         </SectionHeader>
         <SectionContent>
-          <TransactionTable
-            transactions={data.map((d, i) => ({
-              id: i.toString(),
-              description: "Transaction",
-              amount: Math.random() * 100,
-              category: "Category",
-              timestamp: d.timestamp,
-            }))}
-          />
+          <TransactionsTable />
         </SectionContent>
       </Section>
     </div>

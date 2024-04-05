@@ -234,7 +234,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
             />
 
             <div>
-              <FormLabel>Aliases</FormLabel>
+              <FormLabel>Aliases (optional)</FormLabel>
               <div className="mt-1 space-y-2">
                 {aliases.fields.map((alias, index) => (
                   <FormField

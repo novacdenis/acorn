@@ -6,7 +6,7 @@ import React from "react";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { CalendarIcon, ClockIcon } from "@heroicons/react/24/outline";
 import { valibotResolver } from "@hookform/resolvers/valibot";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { add, format } from "date-fns";
 import { useForm } from "react-hook-form";
 import * as v from "valibot";
@@ -59,7 +59,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useMediaQuery } from "@/hooks";
-import { cn, getApiErrorMessage } from "@/utils";
+import { cn, getApiErrorMessage, queryMather } from "@/utils";
 
 import {
   createTransaction,
@@ -100,11 +100,12 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [isCategoryFormOpen, setIsCategoryFormOpen] = React.useState(false);
 
-  const { data: categories, refetch } = useQuery({
+  const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => await getAllCategories(),
   });
 
+  const queryClient = useQueryClient();
   const isMobile = useMediaQuery("(max-width: 640px)");
   const form = useForm<FormValues>({
     defaultValues: {
@@ -229,7 +230,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                     <FormLabel>Category</FormLabel>
                     <fieldset className="grid grid-cols-3 gap-2">
                       <Select
-                        defaultValue={field.value?.toString()}
+                        value={field.value?.toString()}
                         onValueChange={(v) => field.onChange(Number(v))}
                         disabled={form.formState.isSubmitting}
                       >
@@ -419,7 +420,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
         open={isCategoryFormOpen}
         onClose={() => setIsCategoryFormOpen(false)}
         onSubmitSuccess={async (category) => {
-          await refetch();
+          await queryClient.refetchQueries({ predicate: queryMather(["categories"]) });
           form.setValue("category_id", category.id);
         }}
       />

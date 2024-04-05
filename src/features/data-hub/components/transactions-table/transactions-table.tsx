@@ -5,11 +5,11 @@ import type { Transaction, TransactionsQuery } from "../../types";
 import React from "react";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { CloudArrowUpIcon } from "@heroicons/react/24/outline";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyIcon, EmptyTitle } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
-import { cn } from "@/utils";
+import { cn, queryMather } from "@/utils";
 
 import { Pagination } from "./pagination";
 import { Row } from "./row";
@@ -42,7 +42,9 @@ export const TransactionsTable: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = React.useState(false);
   const [selectedTransaction, setSelectedTransaction] = React.useState<Transaction>();
 
-  const { data, isLoading, isFetching, refetch } = useQuery({
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: ["transactions", query],
     queryFn: async () => await getAllTransactions(query),
     placeholderData: keepPreviousData,
@@ -116,10 +118,10 @@ export const TransactionsTable: React.FC = () => {
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmitSuccess={() => {
-          refetch();
+          queryClient.refetchQueries({ predicate: queryMather(["transactions"]) });
         }}
         onDeleteSuccess={() => {
-          refetch();
+          queryClient.refetchQueries({ predicate: queryMather(["transactions"]) });
         }}
         defaultValues={selectedTransaction}
       />

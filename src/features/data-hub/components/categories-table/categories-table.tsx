@@ -4,11 +4,11 @@ import type { CategoriesQuery, Category } from "../../types";
 
 import React from "react";
 import { PlusIcon } from "@heroicons/react/20/solid";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Empty, EmptyDescription, EmptyIcon, EmptyTitle } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
-import { cn } from "@/utils";
+import { cn, queryMather } from "@/utils";
 
 import { Pagination } from "./pagination";
 import { Row } from "./row";
@@ -39,7 +39,9 @@ export const CategoriesTable: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = React.useState(false);
   const [selectedCategory, setSelectedCategory] = React.useState<Category>();
 
-  const { data, isLoading, isFetching, refetch } = useQuery({
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: ["categories", query],
     queryFn: async () => await getAllCategories(query),
     placeholderData: keepPreviousData,
@@ -103,10 +105,10 @@ export const CategoriesTable: React.FC = () => {
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmitSuccess={() => {
-          refetch();
+          queryClient.refetchQueries({ predicate: queryMather(["transactions", "categories"]) });
         }}
         onDeleteSuccess={() => {
-          refetch();
+          queryClient.refetchQueries({ predicate: queryMather(["transactions", "categories"]) });
         }}
         defaultValues={selectedCategory}
       />

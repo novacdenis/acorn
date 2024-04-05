@@ -7,13 +7,14 @@ import type {
 } from "../../types";
 
 import React from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks";
 import { createClient } from "@/lib/supabase/client";
-import { getApiErrorMessage } from "@/utils";
+import { getApiErrorMessage, queryMather } from "@/utils";
 
 import { ProgressStep } from "./progress-step";
 import { ReviewStep } from "./review-step";
@@ -80,6 +81,7 @@ export const ImportDialog: React.FC = () => {
     failed: 0,
   });
 
+  const queryClient = useQueryClient();
   const isMobile = useMediaQuery("(max-width: 640px)");
   const abortController = React.useRef<AbortController | null>(null);
 
@@ -113,11 +115,12 @@ export const ImportDialog: React.FC = () => {
     async (transactions: ExtractedTransaction[]) => {
       setTransactions(transactions);
       setStep(Step.Progress);
-      setProgress((prev) => ({
-        ...prev,
+      setProgress({
         status: "loading",
         total: transactions.length,
-      }));
+        imported: 0,
+        failed: 0,
+      });
 
       const supabase = createClient();
       abortController.current = new AbortController();
@@ -187,16 +190,18 @@ export const ImportDialog: React.FC = () => {
   }, []);
 
   const onFinishImport = React.useCallback(() => {
+    queryClient.refetchQueries({ predicate: queryMather(["transactions", "categories"]) });
     resetImportState();
-  }, [resetImportState]);
+  }, [queryClient, resetImportState]);
 
   const onStartImportReview = React.useCallback(() => {
     setStep(Step.Review);
   }, []);
 
   const onFinishImportReview = React.useCallback(() => {
+    queryClient.refetchQueries({ predicate: queryMather(["transactions", "categories"]) });
     resetImportState();
-  }, [resetImportState]);
+  }, [queryClient, resetImportState]);
 
   const Root = isMobile ? Drawer : Dialog;
   const Content = isMobile ? DrawerContent : DialogContent;

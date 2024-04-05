@@ -4,7 +4,7 @@ import React from "react";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { CalendarIcon, ClockIcon } from "@heroicons/react/24/outline";
 import { valibotResolver } from "@hookform/resolvers/valibot";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, add } from "date-fns";
 import { useForm } from "react-hook-form";
 import * as v from "valibot";
@@ -32,11 +32,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { cn, getApiErrorMessage, getPercentageFromTotal } from "@/utils";
+import { cn, getApiErrorMessage, getPercentageFromTotal, queryMather } from "@/utils";
 
 import { useImportDialogContext } from "./import-dialog";
 import { CategoryForm } from "..";
-import { createTransaction, getAllCategories } from "../../actions";
+import { createTransaction, getAllCategories, updateCategory } from "../../actions";
 
 const scheme = v.object({
   description: v.string([v.minLength(1, "Description is required")]),
@@ -53,18 +53,19 @@ type FormValues = v.Input<typeof scheme>;
 
 interface ReviewFormProps {
   transaction: ExtractedTransaction;
-  onComplete: () => void;
+  onComplete: (options?: { retrySimilar: boolean }) => void;
 }
 
 const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
   const [isCategoryFormOpen, setIsCategoryFormOpen] = React.useState(false);
 
   const { isMobile } = useImportDialogContext();
-  const { data: categories, refetch: refetchCategories } = useQuery({
+  const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => await getAllCategories(),
   });
 
+  const queryClient = useQueryClient();
   const form = useForm<FormValues>({
     defaultValues: {
       description: transaction.data.description,
@@ -86,8 +87,14 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
           minutes: Number(values.time.split(":")[1]) ?? 0,
         }),
       };
+      const category = categories?.data.find((c) => c.id === values.category_id);
 
       await createTransaction(data);
+      await updateCategory(values.category_id, {
+        aliases: [...(category?.aliases ?? []), transaction.data.category].filter(Boolean),
+      });
+
+      queryClient.refetchQueries({ predicate: queryMather(["transactions", "categories"]) });
       onComplete();
     } catch (error) {
       form.setError("root", { type: "manual", message: getApiErrorMessage(error) });
@@ -139,7 +146,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
                 <FormLabel>Category</FormLabel>
                 <fieldset className="grid grid-cols-3 gap-2">
                   <Select
-                    defaultValue={field.value?.toString()}
+                    value={field.value?.toString()}
                     onValueChange={(v) => field.onChange(Number(v))}
                     disabled={form.formState.isSubmitting}
                   >
@@ -279,7 +286,11 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
       </Form>
 
       <Footer>
-        <Button variant="secondary" disabled={form.formState.isSubmitting} onClick={onComplete}>
+        <Button
+          variant="secondary"
+          disabled={form.formState.isSubmitting}
+          onClick={() => onComplete()}
+        >
           Skip
         </Button>
         <Button disabled={form.formState.isSubmitting} onClick={form.handleSubmit(onSubmit)}>
@@ -291,7 +302,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
         open={isCategoryFormOpen}
         onClose={() => setIsCategoryFormOpen(false)}
         onSubmitSuccess={async (category) => {
-          await refetchCategories();
+          await queryClient.refetchQueries({ predicate: queryMather(["categories"]) });
           form.setValue("category_id", category.id);
         }}
       />

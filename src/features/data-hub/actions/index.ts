@@ -62,7 +62,10 @@ export async function createCategory(data: CreateCategoryBody) {
     .insert({
       name: data.name,
       color: data.color,
-      aliases: data.aliases,
+      aliases: data.aliases
+        .map((alias) => alias.trim().toLowerCase())
+        .filter(Boolean)
+        .filter((value, index, self) => self.indexOf(value) === index),
       user_id: user.data.user.id,
     })
     .select()
@@ -88,7 +91,10 @@ export async function updateCategory(id: number, data: Partial<CreateCategoryBod
     .update({
       name: data.name,
       color: data.color,
-      aliases: data.aliases,
+      aliases: data.aliases
+        ?.map((alias) => alias.trim().toLowerCase())
+        .filter(Boolean)
+        .filter((value, index, self) => self.indexOf(value) === index),
     })
     .match({ id })
     .eq("user_id", user.data.user.id)

@@ -16,7 +16,7 @@ import { Row } from "./row";
 import { Toolbar } from "./toolbar";
 import { getAllTransactions } from "../../actions";
 import { TRANSACTIONS_DEFAULT_QUERY } from "../../constants";
-import { useImportDialogStore } from "../import-dialog-v2";
+import { useImportDialogStore } from "../import-dialog";
 import { TransactionForm } from "../transaction-form";
 
 interface TransactionsTableContextValue {

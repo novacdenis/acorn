@@ -25,7 +25,7 @@ import { Label } from "@/components/ui/label";
 import { useDebouncedCallback } from "@/hooks";
 
 import { useTransactionsTable } from "./transactions-table";
-import { useImportDialogStore } from "../import-dialog-v2";
+import { useImportDialogStore } from "../import-dialog";
 
 export const Toolbar: React.FC = () => {
   const { query, onChangeQuery, onOpenForm } = useTransactionsTable();

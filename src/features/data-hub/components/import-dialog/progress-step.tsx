@@ -1,5 +1,6 @@
 import React from "react";
 import { CheckCircleIcon, InformationCircleIcon, XCircleIcon } from "@heroicons/react/16/solid";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,21 +10,28 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Progress } from "@/components/ui/progress";
-import { formatNumber, getPercentageFromTotal } from "@/utils";
+import { formatNumber, getPercentageFromTotal, queryMather } from "@/utils";
 
-import { useImportDialogContext } from "./import-dialog";
+import { useImportDialog } from "./import-dialog";
 
 export const ProgressStep: React.FC = () => {
-  const { isMobile, transactions, progress, onAbortImport, onDismissImport, onStartImportReview } =
-    useImportDialogContext();
+  const { isMobile, transactions, progress, resetState, abortImport, startReview } =
+    useImportDialog();
 
-  const [isAbortAlertOpen, setIsAbortAlertOpen] = React.useState(false);
   const [isDismissAlertOpen, setIsDismissAlertOpen] = React.useState(false);
+
+  const queryClient = useQueryClient();
+
+  const onCancel = () => {
+    queryClient.refetchQueries({ predicate: queryMather(["transactions", "categories"]) });
+    resetState();
+  };
 
   const Header = isMobile ? DrawerHeader : DialogHeader;
   const Title = isMobile ? DrawerTitle : DialogTitle;
@@ -95,13 +103,25 @@ export const ProgressStep: React.FC = () => {
 
       <Footer>
         {isInProgress && (
-          <Button
-            variant="destructive"
-            className="w-full"
-            onClick={() => setIsAbortAlertOpen(true)}
-          >
-            Cancel import
-          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="w-full">
+                Abort import
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  If you abort the import, all remaining transactions will be skipped.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Go back</AlertDialogCancel>
+                <AlertDialogAction onClick={abortImport}>Yes, cancel</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
 
         {isCompleted && (
@@ -110,34 +130,19 @@ export const ProgressStep: React.FC = () => {
               variant="secondary"
               onClick={() => {
                 if (progress.failed > 0) setIsDismissAlertOpen(true);
-                else onDismissImport();
+                else onCancel();
               }}
             >
               Dismiss
             </Button>
             {progress.failed > 0 && (
-              <Button onClick={onStartImportReview}>
+              <Button onClick={startReview}>
                 Review {formatNumber(progress.failed, { notation: "compact" })} failed transactions
               </Button>
             )}
           </>
         )}
       </Footer>
-
-      <AlertDialog open={isAbortAlertOpen} onOpenChange={setIsAbortAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              If you abort the import, all remaining transactions will be skipped.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={onAbortImport}>Yes, cancel</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <AlertDialog open={isDismissAlertOpen} onOpenChange={setIsDismissAlertOpen}>
         <AlertDialogContent>
@@ -148,8 +153,8 @@ export const ProgressStep: React.FC = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={onDismissImport}>Yes, dismiss</AlertDialogAction>
+            <AlertDialogCancel>Go back</AlertDialogCancel>
+            <AlertDialogAction onClick={onCancel}>Yes, dismiss</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -51,6 +51,11 @@ export interface TransactionsQuery extends PageQuery {}
 
 export type Bank = "vb";
 
+export interface CategoryMapping {
+  alias: string;
+  id?: number;
+}
+
 interface ExtractedTransactionIdleStatus {
   status: "idle";
 }

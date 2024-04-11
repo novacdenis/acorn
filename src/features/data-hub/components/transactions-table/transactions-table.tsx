@@ -16,7 +16,7 @@ import { Row } from "./row";
 import { Toolbar } from "./toolbar";
 import { getAllTransactions } from "../../actions";
 import { TRANSACTIONS_DEFAULT_QUERY } from "../../constants";
-import { useImportDialogStore } from "../import-dialog";
+import { useImportDialogStore } from "../import-dialog-v2";
 import { TransactionForm } from "../transaction-form";
 
 interface TransactionsTableContextValue {
@@ -80,21 +80,17 @@ export const TransactionsTable: React.FC = () => {
           <Empty className={cn({ "opacity-0": loading })}>
             <EmptyIcon />
             <EmptyTitle>No transactions found</EmptyTitle>
-            <EmptyDescription>Try changing the filters or importing transactions.</EmptyDescription>
-            <div className="mt-5 flex items-center gap-2">
-              <Button
-                className="aspect-square px-0 sm:aspect-auto sm:px-3"
-                onClick={() => setIsFormOpen(true)}
-              >
+            <EmptyDescription>
+              Try changing the filters or creating/importing transactions.
+            </EmptyDescription>
+            <div className="mt-4 flex items-center gap-2">
+              <Button onClick={() => setIsFormOpen(true)}>
                 <PlusIcon className="h-5 w-5" />
-                <span className="ml-2 hidden sm:block">Create</span>
+                <span className="ml-2">Create</span>
               </Button>
-              <Button
-                className="aspect-square px-0 sm:aspect-auto sm:px-3"
-                onClick={() => setIsImportOpen(true)}
-              >
+              <Button onClick={() => setIsImportOpen(true)}>
                 <CloudArrowUpIcon className="h-5 w-5" />
-                <span className="ml-2 hidden sm:block">Import</span>
+                <span className="ml-2">Import</span>
               </Button>
             </div>
           </Empty>

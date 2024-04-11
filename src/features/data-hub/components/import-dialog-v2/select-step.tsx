@@ -1,3 +1,5 @@
+"use client";
+
 import type { Bank, ExtractedTransaction } from "../../types";
 
 import React from "react";
@@ -18,7 +20,7 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { bytesToSize, cn, formatNumber, validateFile } from "@/utils";
 
-import { useImportDialogContext, useImportDialogStore } from "./import-dialog";
+import { useImportDialog } from "./import-dialog";
 import { BANK_OPTIONS } from "../../constants";
 import { VBHtmlParser } from "../../utils";
 
@@ -133,7 +135,7 @@ const File: React.FC<FileProps> = ({ file, onRemove }) => {
       <div className="flex items-center justify-between">
         <div className="flex-1 overflow-hidden">
           <div className="flex items-center">
-            {file.status === "pending" && <Spinner className="h-4 w-4" />}
+            {file.status === "pending" && <Spinner isLoading className="h-4 w-4" />}
             {file.status === "done" && <CheckCircleIcon className="h-4 w-4" />}
             {file.status === "error" && <XCircleIcon className="h-4 w-4" />}
 
@@ -157,9 +159,8 @@ const File: React.FC<FileProps> = ({ file, onRemove }) => {
   );
 };
 
-export const UploadStep: React.FC = () => {
-  const { onOpenChange } = useImportDialogStore((store) => ({ onOpenChange: store.onOpenChange }));
-  const { isMobile, onStartMapping } = useImportDialogContext();
+export const SelectStep: React.FC = () => {
+  const { isMobile, startMapping, resetState } = useImportDialog();
 
   const [bank, setBank] = React.useState<Bank>();
   const [files, setFiles] = React.useState<ProcessedFile[]>([]);
@@ -181,6 +182,7 @@ export const UploadStep: React.FC = () => {
             originalFile: f.originalFile,
             bank: f.bank,
           };
+
           return { ...base, ...status };
         }
 
@@ -224,10 +226,7 @@ export const UploadStep: React.FC = () => {
 
   const onContinue = async () => {
     setIsFinishing(true);
-    await onStartMapping(
-      files.flatMap((file) => (file.status === "done" ? file.transactions : []))
-    );
-    setIsFinishing(false);
+    await startMapping(files.flatMap((file) => (file.status === "done" ? file.transactions : [])));
   };
 
   const Header = isMobile ? DrawerHeader : DialogHeader;
@@ -351,7 +350,7 @@ export const UploadStep: React.FC = () => {
       )}
 
       <Footer>
-        <Button variant="secondary" disabled={!isCancelEnabled} onClick={() => onOpenChange(false)}>
+        <Button variant="secondary" disabled={!isCancelEnabled} onClick={resetState}>
           Cancel
         </Button>
         <Button disabled={!isContinueEnabled} isLoading={isFinishing} onClick={onContinue}>

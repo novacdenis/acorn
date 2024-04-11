@@ -1,29 +1,29 @@
 "use client";
 
 import type {
+  CategoryMapping,
   ExtractedTransaction,
   ExtractedTransactionBase,
   ExtractedTransactionStatus,
 } from "../../types";
 
 import React from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks";
 import { createClient } from "@/lib/supabase/client";
-import { getApiErrorMessage, queryMather } from "@/utils";
+import { getApiErrorMessage } from "@/utils";
 
 import { MappingStep } from "./mapping-step";
 import { ProgressStep } from "./progress-step";
 import { ReviewStep } from "./review-step";
-import { UploadStep } from "./upload-step";
+import { SelectStep } from "./select-step";
 import { createTransaction } from "../../actions";
 
 export const enum Step {
-  Upload = "upload",
+  Select = "select",
   Mapping = "mapping",
   Progress = "progress",
   Review = "review",
@@ -48,27 +48,27 @@ export const useImportDialogStore = create<ImportDialogStore>((set) => ({
 
 export interface ImportDialogContextValue {
   isMobile: boolean;
-  mapping: Record<string, number | undefined>;
   transactions: ExtractedTransaction[];
+  mappings: CategoryMapping[];
   progress: ImportProgress;
-  onStartMapping: (transactions: ExtractedTransaction[]) => Promise<void>;
-  onCancelMapping: () => void;
-  onStartImport: () => Promise<void>;
-  onAbortImport: () => void;
-  onDismissImport: () => void;
-  onStartImportReview: () => void;
-  onDismissImportReview: () => void;
+  resetState: () => void;
+  updateMapping: (alias: string, id?: number) => void;
+  updateTransaction: (uid: string, status: ExtractedTransactionStatus) => void;
+  startMapping: (transactions: ExtractedTransaction[]) => Promise<void>;
+  startImport: () => Promise<void>;
+  abortImport: () => void;
+  startReview: () => void;
 }
 
 export const ImportDialogContext = React.createContext<ImportDialogContextValue | undefined>(
   undefined
 );
 
-export const useImportDialogContext = () => {
+export const useImportDialog = () => {
   const context = React.useContext(ImportDialogContext);
 
   if (!context) {
-    throw new Error("useImportContext must be used within a ImportProvider");
+    throw new Error("useImportDialog must be used within a ImportProvider");
   }
   return context;
 };
@@ -77,8 +77,8 @@ export const ImportDialog: React.FC = () => {
   const [open, onOpenChange] = useImportDialogStore(
     useShallow((state) => [state.open, state.onOpenChange])
   );
-  const [step, setStep] = React.useState(Step.Upload);
-  const [mapping, setMapping] = React.useState<Record<string, number | undefined>>({});
+  const [step, setStep] = React.useState(Step.Select);
+  const [mappings, setMappings] = React.useState<CategoryMapping[]>([]);
   const [transactions, setTransactions] = React.useState<ExtractedTransaction[]>([]);
   const [progress, setProgress] = React.useState<ImportProgress>({
     status: "idle",
@@ -87,19 +87,30 @@ export const ImportDialog: React.FC = () => {
     failed: 0,
   });
 
-  const queryClient = useQueryClient();
   const isMobile = useMediaQuery("(max-width: 640px)");
   const abortController = React.useRef<AbortController | null>(null);
 
-  const resetImportState = React.useCallback(() => {
+  const resetState = React.useCallback(() => {
     onOpenChange(false);
     setTimeout(() => {
-      setStep(Step.Upload);
-      setMapping({});
+      setStep(Step.Select);
+      setMappings([]);
       setTransactions([]);
       setProgress({ status: "idle", total: 0, imported: 0, failed: 0 });
-    });
+    }, 200);
   }, [onOpenChange]);
+
+  const updateMapping = React.useCallback((alias: string, id?: number) => {
+    setMappings((prev) =>
+      prev.map((mapping) => {
+        if (mapping.alias === alias) {
+          return { ...mapping, id };
+        }
+
+        return mapping;
+      })
+    );
+  }, []);
 
   const updateTransaction = React.useCallback((uid: string, status: ExtractedTransactionStatus) => {
     setTransactions((prev) =>
@@ -118,39 +129,28 @@ export const ImportDialog: React.FC = () => {
     );
   }, []);
 
-  const onStartMapping = React.useCallback(async (transactions: ExtractedTransaction[]) => {
+  const startMapping = React.useCallback(async (transactions: ExtractedTransaction[]) => {
     const supabase = createClient();
-    const categories = Array.from(new Set(transactions.map((t) => t.data.category)));
+    const aliases = Array.from(new Set(transactions.map((t) => t.data.category)));
+    const mappings: CategoryMapping[] = [];
 
-    for (const category of categories) {
-      const response = await supabase
-        .from("categories")
-        .select("id")
-        .contains("aliases", [category])
-        .single();
+    const response = await supabase.from("categories").select("*").containedBy("aliases", aliases);
 
-      setMapping((prev) => ({
-        ...prev,
-        [category]: response.data?.id,
-      }));
+    if (response.data) {
+      for (const alias of aliases) {
+        const category = response.data.find((c) => c.aliases.includes(alias));
+        mappings.push({ alias, id: category?.id });
+      }
     }
 
     setStep(Step.Mapping);
+    setMappings(mappings);
     setTransactions(transactions);
   }, []);
 
-  const onCancelMapping = React.useCallback(() => {
-    resetImportState();
-  }, [resetImportState]);
-
-  const onStartImport = React.useCallback(async () => {
+  const startImport = React.useCallback(async () => {
     setStep(Step.Progress);
-    setProgress({
-      status: "loading",
-      total: transactions.length,
-      imported: 0,
-      failed: 0,
-    });
+    setProgress({ status: "loading", total: transactions.length, imported: 0, failed: 0 });
 
     abortController.current = new AbortController();
 
@@ -165,7 +165,9 @@ export const ImportDialog: React.FC = () => {
       updateTransaction(transaction.uid, { status: "loading" });
 
       try {
-        const category = mapping[transaction.data.category];
+        const category = mappings.find(
+          (mapping) => mapping.alias === transaction.data.category
+        )?.id;
 
         if (!category) {
           throw new Error("Category not found.");
@@ -202,27 +204,17 @@ export const ImportDialog: React.FC = () => {
       ...prev,
       status: abortController.current?.signal.aborted ? "cancelled" : "done",
     }));
-  }, [mapping, transactions, updateTransaction]);
+  }, [mappings, transactions, updateTransaction]);
 
-  const onAbortImport = React.useCallback(() => {
+  const abortImport = React.useCallback(() => {
     if (abortController.current) {
       abortController.current.abort();
     }
   }, []);
 
-  const onDismissImport = React.useCallback(() => {
-    queryClient.refetchQueries({ predicate: queryMather(["transactions", "categories"]) });
-    resetImportState();
-  }, [queryClient, resetImportState]);
-
-  const onStartImportReview = React.useCallback(() => {
+  const startReview = React.useCallback(() => {
     setStep(Step.Review);
   }, []);
-
-  const onDismissImportReview = React.useCallback(() => {
-    queryClient.refetchQueries({ predicate: queryMather(["transactions", "categories"]) });
-    resetImportState();
-  }, [queryClient, resetImportState]);
 
   const Root = isMobile ? Drawer : Dialog;
   const Content = isMobile ? DrawerContent : DialogContent;
@@ -230,29 +222,29 @@ export const ImportDialog: React.FC = () => {
   const value = React.useMemo(
     () => ({
       isMobile,
-      mapping,
+      mappings,
       transactions,
       progress,
-      onStartMapping,
-      onCancelMapping,
-      onStartImport,
-      onAbortImport,
-      onDismissImport,
-      onStartImportReview,
-      onDismissImportReview,
+      resetState,
+      updateMapping,
+      updateTransaction,
+      startMapping,
+      startImport,
+      abortImport,
+      startReview,
     }),
     [
       isMobile,
-      mapping,
+      mappings,
       transactions,
       progress,
-      onStartMapping,
-      onCancelMapping,
-      onStartImport,
-      onAbortImport,
-      onDismissImport,
-      onStartImportReview,
-      onDismissImportReview,
+      resetState,
+      updateMapping,
+      updateTransaction,
+      startMapping,
+      startImport,
+      abortImport,
+      startReview,
     ]
   );
 
@@ -277,7 +269,7 @@ export const ImportDialog: React.FC = () => {
             e.stopPropagation();
           }}
         >
-          {step === Step.Upload && <UploadStep />}
+          {step === Step.Select && <SelectStep />}
           {step === Step.Mapping && <MappingStep />}
           {step === Step.Progress && <ProgressStep />}
           {step === Step.Review && <ReviewStep />}

@@ -5,10 +5,21 @@ import { PlusIcon } from "@heroicons/react/20/solid";
 import { CalendarIcon, ClockIcon } from "@heroicons/react/24/outline";
 import { valibotResolver } from "@hookform/resolvers/valibot";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format, add } from "date-fns";
+import { add, format } from "date-fns";
 import { useForm } from "react-hook-form";
 import * as v from "valibot";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -34,7 +45,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { cn, getApiErrorMessage, getPercentageFromTotal, queryMather } from "@/utils";
 
-import { useImportDialogContext } from "./import-dialog";
+import { useImportDialog } from "./import-dialog";
 import { createTransaction, getAllCategories, updateCategory } from "../../actions";
 import { CategoryForm } from "../category-form";
 
@@ -53,13 +64,14 @@ type FormValues = v.Input<typeof scheme>;
 
 interface ReviewFormProps {
   transaction: ExtractedTransaction;
-  onComplete: (options?: { retrySimilar: boolean }) => void;
+  onComplete: () => void;
 }
 
 const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
   const [isCategoryFormOpen, setIsCategoryFormOpen] = React.useState(false);
+  const [selectedCategoryAlias, setSelectedCategoryAlias] = React.useState<string | null>(null);
 
-  const { isMobile } = useImportDialogContext();
+  const { isMobile, resetState, updateTransaction } = useImportDialog();
   const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => await getAllCategories(),
@@ -88,13 +100,16 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
         }),
       };
       const category = categories?.data.find((c) => c.id === values.category_id);
+      const response = await createTransaction(data);
 
-      await createTransaction(data);
       await updateCategory(values.category_id, {
-        aliases: [...(category?.aliases ?? []), transaction.data.category].filter(Boolean),
+        aliases: [...(category?.aliases ?? []), transaction.data.category]
+          .filter(Boolean)
+          .filter((value, index, self) => self.indexOf(value) === index),
       });
 
       queryClient.refetchQueries({ predicate: queryMather(["transactions", "categories"]) });
+      updateTransaction(transaction.uid, { status: "done", response });
       onComplete();
     } catch (error) {
       form.setError("root", { type: "manual", message: getApiErrorMessage(error) });
@@ -118,7 +133,10 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
       )}
 
       <Form {...form}>
-        <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+        <form
+          className="space-y-4 rounded-2xl border border-primary/10 bg-primary/5 p-2.5"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
           <FormField
             control={form.control}
             name="description"
@@ -285,25 +303,49 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
         </form>
       </Form>
 
-      <Footer>
-        <Button
-          variant="secondary"
-          disabled={form.formState.isSubmitting}
-          onClick={() => onComplete()}
-        >
-          Skip
-        </Button>
-        <Button disabled={form.formState.isSubmitting} onClick={form.handleSubmit(onSubmit)}>
-          Submit
-        </Button>
+      <Footer className="justify-between">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="secondary">Cancel</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                If you cancel the review, all changes will be lost. Are you sure you want to cancel?
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Go back</AlertDialogCancel>
+              <AlertDialogAction onClick={resetState}>Yes, cancel</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" disabled={form.formState.isSubmitting} onClick={onComplete}>
+            Skip
+          </Button>
+          <Button disabled={form.formState.isSubmitting} onClick={form.handleSubmit(onSubmit)}>
+            Submit
+          </Button>
+        </div>
       </Footer>
 
       <CategoryForm
+        key={selectedCategoryAlias}
         open={isCategoryFormOpen}
-        onClose={() => setIsCategoryFormOpen(false)}
+        onClose={() => {
+          setIsCategoryFormOpen(false);
+          setSelectedCategoryAlias(null);
+        }}
         onSubmitSuccess={async (category) => {
           await queryClient.refetchQueries({ predicate: queryMather(["categories"]) });
           form.setValue("category_id", category.id);
+        }}
+        defaultValues={{
+          aliases: selectedCategoryAlias ? [selectedCategoryAlias] : [""],
         }}
       />
     </>
@@ -311,14 +353,14 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
 };
 
 export const ReviewStep: React.FC = () => {
-  const { isMobile, transactions, onDismissImportReview } = useImportDialogContext();
+  const { isMobile, transactions, resetState } = useImportDialog();
 
   const [transactionsToReview] = React.useState([
     ...transactions.filter((t) => t.status === "error"),
   ]);
   const [currentIndex, setCurrentIndex] = React.useState(0);
 
-  const onReviewComplete = React.useCallback(() => {
+  const onTransactionReviewComplete = React.useCallback(() => {
     setCurrentIndex((prev) => prev + 1);
   }, []);
 
@@ -347,30 +389,26 @@ export const ReviewStep: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid gap-4 rounded-2xl border border-primary/10 bg-primary/5 p-2.5">
-        {currentTransaction ? (
-          <ReviewForm
-            key={currentTransaction.uid}
-            transaction={currentTransaction}
-            onComplete={onReviewComplete}
-          />
-        ) : (
-          <div className="flex flex-col gap-1.5 p-2">
+      {currentTransaction ? (
+        <ReviewForm
+          key={currentTransaction.uid}
+          transaction={currentTransaction}
+          onComplete={onTransactionReviewComplete}
+        />
+      ) : (
+        <>
+          <div className="flex flex-col gap-1.5 rounded-2xl border border-primary/10 bg-primary/5 p-2.5">
             <h3 className="font-semibold leading-none tracking-tight">Review completed</h3>
             <p className="text-sm text-muted-foreground">
               All transactions have been successfully processed. No further action is needed from
               your end.
             </p>
           </div>
-        )}
-      </div>
 
-      {!currentTransaction && (
-        <Footer>
-          <Button variant="secondary" onClick={onDismissImportReview}>
-            Dismiss
-          </Button>
-        </Footer>
+          <Footer>
+            <Button onClick={resetState}>Close</Button>
+          </Footer>
+        </>
       )}
     </>
   );

@@ -25,7 +25,7 @@ import { Label } from "@/components/ui/label";
 import { useDebouncedCallback } from "@/hooks";
 
 import { useTransactionsTable } from "./transactions-table";
-import { useImportDialogStore } from "../import-dialog";
+import { useImportDialogStore } from "../import-dialog-v2";
 
 export const Toolbar: React.FC = () => {
   const { query, onChangeQuery, onOpenForm } = useTransactionsTable();
@@ -43,13 +43,13 @@ export const Toolbar: React.FC = () => {
       <div className="flex flex-1 items-center gap-2">
         <fieldset className="relative w-full sm:max-w-sm">
           <Label
-            htmlFor="search"
+            htmlFor="transactions-search"
             className="absolute inset-y-0 left-0 flex items-center justify-center px-3"
           >
             <MagnifyingGlassIcon className="h-5 w-5 opacity-50" />
           </Label>
           <Input
-            id="search"
+            id="transactions-search"
             inputMode="search"
             autoComplete="off"
             placeholder="Search by description..."

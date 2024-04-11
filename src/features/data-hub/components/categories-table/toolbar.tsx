@@ -32,13 +32,13 @@ export const Toolbar: React.FC = () => {
       <div className="flex flex-1 items-center gap-2">
         <fieldset className="relative w-full sm:max-w-sm">
           <Label
-            htmlFor="search"
+            htmlFor="categories-search"
             className="absolute inset-y-0 left-0 flex items-center justify-center px-3"
           >
             <MagnifyingGlassIcon className="h-5 w-5 opacity-50" />
           </Label>
           <Input
-            id="search"
+            id="categories-search"
             inputMode="search"
             autoComplete="off"
             placeholder="Search by name..."

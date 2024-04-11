@@ -80,7 +80,7 @@ export const CategoriesTable: React.FC = () => {
             <EmptyDescription>
               Try changing the filters or creating a new category.
             </EmptyDescription>
-            <Button className="mt-5" onClick={() => setIsFormOpen(true)}>
+            <Button className="mt-4" onClick={() => setIsFormOpen(true)}>
               <PlusIcon className="h-5 w-5" />
               <span className="ml-2">Create category</span>
             </Button>

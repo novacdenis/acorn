@@ -67,7 +67,7 @@ export interface CategoryFormProps {
   onClose: () => void;
   onSubmitSuccess?: (category: Category) => Promise<void> | void;
   onDeleteSuccess?: (category: Category) => Promise<void> | void;
-  defaultValues?: Category;
+  defaultValues?: Partial<Category>;
 }
 
 export const CategoryForm: React.FC<CategoryFormProps> = ({
@@ -88,7 +88,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
     },
     resolver: valibotResolver(scheme),
   });
-  const aliases = useFieldArray({
+  const formAliases = useFieldArray({
     control: form.control,
     name: "aliases",
   });
@@ -131,10 +131,10 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
 
     setIsDeleting(true);
     try {
-      await deleteCategory(defaultValues.id);
+      const response = await deleteCategory(defaultValues.id);
 
       if (onDeleteSuccess) {
-        await onDeleteSuccess(defaultValues);
+        await onDeleteSuccess(response);
       }
       onCloseHandler();
     } catch (error) {
@@ -236,7 +236,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
             <div>
               <FormLabel>Aliases (optional)</FormLabel>
               <div className="mt-1 space-y-2">
-                {aliases.fields.map((alias, index) => (
+                {formAliases.fields.map((alias, index) => (
                   <FormField
                     key={alias.id}
                     control={form.control}
@@ -252,7 +252,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                               disabled={form.formState.isSubmitting}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter" && e.currentTarget.value) {
-                                  aliases.append({ value: "" });
+                                  formAliases.append({ value: "" });
                                 }
                               }}
                             />
@@ -262,7 +262,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                               variant="secondary"
                               size="icon"
                               className="ml-2 shrink-0"
-                              onClick={() => aliases.remove(index)}
+                              onClick={() => formAliases.remove(index)}
                               disabled={form.formState.isSubmitting}
                             >
                               <TrashIcon className="h-5 w-5" />
@@ -280,7 +280,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                 variant="outline"
                 size="sm"
                 className="mt-2"
-                onClick={() => aliases.append({ value: "" })}
+                onClick={() => formAliases.append({ value: "" })}
                 disabled={
                   form.formState.isSubmitting || !aliasesValues[aliasesValues.length - 1].value
                 }

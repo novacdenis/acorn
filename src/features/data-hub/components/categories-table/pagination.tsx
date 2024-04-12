@@ -20,7 +20,7 @@ export const Pagination: React.FC<PaginationProps> = ({ page, total, take }) => 
   return (
     <nav className="mt-5 flex items-center justify-end gap-4" aria-label="Pagination">
       <p className="text-sm text-muted-foreground md:text-base">
-        {page * take - take + 1} - {Math.min(page * take, total)} of {total}
+        {total === 0 ? 0 : page * take - take + 1} - {Math.min(page * take, total)} of {total}
       </p>
       <ul className="flex gap-2">
         <li>

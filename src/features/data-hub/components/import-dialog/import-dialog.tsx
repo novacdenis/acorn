@@ -132,11 +132,11 @@ export const ImportDialog: React.FC = () => {
   const startMapping = React.useCallback(async (transactions: ExtractedTransaction[]) => {
     const supabase = createClient();
     const aliases = Array.from(new Set(transactions.map((t) => t.data.category))).map((alias) =>
-      alias.trim().toLowerCase()
+      alias.trim()
     );
     const mappings: CategoryMapping[] = [];
 
-    const response = await supabase.from("categories").select("*").containedBy("aliases", aliases);
+    const response = await supabase.from("categories").select("*").overlaps("aliases", aliases);
 
     if (response.data) {
       for (const alias of aliases) {

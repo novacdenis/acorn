@@ -231,12 +231,18 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                     <fieldset className="grid grid-cols-3 gap-2">
                       <Select
                         value={field.value?.toString()}
-                        onValueChange={(v) => field.onChange(Number(v))}
+                        onValueChange={(value) => {
+                          if (value) {
+                            field.onChange(Number(value));
+                          }
+                        }}
                         disabled={form.formState.isSubmitting}
                       >
-                        <SelectTrigger className="col-span-2">
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
+                        <FormControl>
+                          <SelectTrigger className="col-span-2">
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                        </FormControl>
                         <SelectContent>
                           {categories?.data.length ? (
                             categories.data.map((category) => (

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "generate": "npx supabase gen types typescript --project-id euozpvpwfqyyvhdsjetv > src/types/supabase.ts"
+    "generate": "npx supabase gen types typescript --local > src/types/supabase.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.3",

@@ -4,7 +4,7 @@ import React from "react";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { CalendarIcon, ClockIcon } from "@heroicons/react/24/outline";
 import { valibotResolver } from "@hookform/resolvers/valibot";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { add, format } from "date-fns";
 import { useForm } from "react-hook-form";
 import * as v from "valibot";
@@ -43,10 +43,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { cn, getApiErrorMessage, getPercentageFromTotal, queryMather } from "@/utils";
+import { cn, getApiErrorMessage, getPercentageFromTotal } from "@/utils";
 
 import { useImportDialog } from "./import-dialog";
-import { createTransaction, getAllCategories, updateCategory } from "../../actions";
+import { createTransaction, getAllCategories } from "../../actions";
 import { CategoryForm } from "../category-form";
 
 const scheme = v.object({
@@ -72,12 +72,11 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
   const [selectedCategoryAlias, setSelectedCategoryAlias] = React.useState<string | null>(null);
 
   const { isMobile, resetState, updateTransaction } = useImportDialog();
-  const { data: categories } = useQuery({
+  const { data: categories, refetch } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => await getAllCategories(),
   });
 
-  const queryClient = useQueryClient();
   const form = useForm<FormValues>({
     defaultValues: {
       description: transaction.data.description,
@@ -99,14 +98,8 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
           minutes: Number(values.time.split(":")[1]) ?? 0,
         }),
       };
-      const category = categories?.data.find((c) => c.id === values.category_id);
       const response = await createTransaction(data);
 
-      await updateCategory(values.category_id, {
-        aliases: [...(category?.aliases ?? []), transaction.data.category],
-      });
-
-      queryClient.refetchQueries({ predicate: queryMather(["transactions", "categories"]) });
       updateTransaction(transaction.uid, { status: "done", response });
       onComplete();
     } catch (error) {
@@ -132,7 +125,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
 
       <Form {...form}>
         <form
-          className="space-y-4 rounded-2xl border border-primary/10 bg-primary/5 p-2.5"
+          className="space-y-4 rounded-2xl border border-primary/10 bg-primary/5 p-2.5 shadow dark:shadow-black"
           onSubmit={form.handleSubmit(onSubmit)}
         >
           <FormField
@@ -144,7 +137,6 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
                 <FormControl>
                   <Textarea
                     {...field}
-                    minRows={1}
                     placeholder="Enter a description"
                     disabled={form.formState.isSubmitting}
                   />
@@ -163,12 +155,18 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
                 <fieldset className="grid grid-cols-3 gap-2">
                   <Select
                     value={field.value?.toString()}
-                    onValueChange={(v) => field.onChange(Number(v))}
+                    onValueChange={(value) => {
+                      if (value) {
+                        field.onChange(Number(value));
+                      }
+                    }}
                     disabled={form.formState.isSubmitting}
                   >
-                    <SelectTrigger className="col-span-2">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
+                    <FormControl>
+                      <SelectTrigger className="col-span-2">
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
                     <SelectContent>
                       {categories?.data.length ? (
                         categories.data.map((category) => (
@@ -339,7 +337,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
           setSelectedCategoryAlias(null);
         }}
         onSubmitSuccess={async (category) => {
-          await queryClient.refetchQueries({ predicate: queryMather(["categories"]) });
+          await refetch();
           form.setValue("category_id", category.id);
         }}
         defaultValues={{
@@ -395,7 +393,7 @@ export const ReviewStep: React.FC = () => {
         />
       ) : (
         <>
-          <div className="flex flex-col gap-1.5 rounded-2xl border border-primary/10 bg-primary/5 p-2.5">
+          <div className="flex flex-col gap-1.5 rounded-2xl border border-primary/10 bg-primary/5 p-4 shadow dark:shadow-black">
             <h3 className="font-semibold leading-none tracking-tight">Review completed</h3>
             <p className="text-sm text-muted-foreground">
               All transactions have been successfully processed. No further action is needed from

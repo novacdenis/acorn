@@ -1,18 +1,5 @@
 import type { PageQuery } from "@/types";
 
-export interface DataHubFile {
-  id: number;
-  name: string;
-  imported_transactions: number;
-  user_id: string;
-  created_at: string;
-}
-
-export interface CreateDataHubFileBody {
-  name: string;
-  imported_transactions: number;
-}
-
 export interface Category {
   id: number;
   name: string;
@@ -20,6 +7,7 @@ export interface Category {
   aliases: string[];
   user_id: string;
   created_at: string;
+  updated_at: string;
 }
 
 export interface CreateCategoryBody {
@@ -32,19 +20,21 @@ export interface CategoriesQuery extends PageQuery {}
 
 export interface CreateTransactionBody {
   description: string;
-  category_id: number;
   amount: number;
   timestamp: Date;
+  category_id: number;
 }
 
 export interface Transaction {
   id: number;
   description: string;
+  amount: number;
+  timestamp: string;
   category_id: number;
   category: Category | null;
   user_id: string;
-  amount: number;
-  timestamp: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface TransactionsQuery extends PageQuery {}

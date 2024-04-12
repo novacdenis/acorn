@@ -5,7 +5,7 @@ import type { CategoryMapping } from "../../types";
 import React from "react";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { valibotResolver } from "@hookform/resolvers/valibot";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import * as v from "valibot";
 import {
@@ -22,7 +22,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -31,10 +39,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getPercentageFromTotal, queryMather } from "@/utils";
+import { Switch } from "@/components/ui/switch";
+import { getPercentageFromTotal } from "@/utils";
 
 import { useImportDialog } from "./import-dialog";
-import { getAllCategories } from "../../actions";
+import { getAllCategories, updateCategory } from "../../actions";
 import { CategoryForm } from "../category-form";
 
 const scheme = v.object({
@@ -42,6 +51,7 @@ const scheme = v.object({
     alias: v.string(),
     id: v.number("Category is required"),
   }),
+  assign_alias: v.boolean(),
 });
 
 type FormValues = v.Input<typeof scheme>;
@@ -56,15 +66,15 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
   const [selectedCategoryAlias, setSelectedCategoryAlias] = React.useState<string | null>(null);
 
   const { isMobile, resetState, updateMapping } = useImportDialog();
-  const { data: categories } = useQuery({
+  const { data: categories, refetch } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => await getAllCategories(),
   });
 
-  const queryClient = useQueryClient();
   const form = useForm<FormValues>({
     defaultValues: {
       mapping,
+      assign_alias: false,
     },
     resolver: valibotResolver(scheme),
   });
@@ -74,8 +84,20 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
     onComplete();
   };
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     updateMapping(values.mapping.alias, values.mapping.id);
+
+    if (values.assign_alias) {
+      const category = categories?.data.find((category) => category.id === values.mapping.id);
+
+      if (category) {
+        await updateCategory(values.mapping.id, {
+          aliases: [...(category?.aliases ?? []), mapping.alias],
+        });
+        await refetch();
+      }
+    }
+
     onComplete();
   };
 
@@ -85,7 +107,7 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
     <>
       <Form {...form}>
         <form
-          className="space-y-4 rounded-2xl border border-primary/10 bg-primary/5 p-2.5"
+          className="space-y-4 rounded-2xl border border-primary/10 bg-primary/5 p-2.5 shadow dark:shadow-black"
           onSubmit={form.handleSubmit(onSubmit)}
         >
           <FormField
@@ -97,12 +119,18 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
                 <fieldset className="grid grid-cols-3 gap-2">
                   <Select
                     value={field.value?.toString()}
-                    onValueChange={(v) => field.onChange(Number(v))}
+                    onValueChange={(value) => {
+                      if (value) {
+                        field.onChange(Number(value));
+                      }
+                    }}
                     disabled={form.formState.isSubmitting}
                   >
-                    <SelectTrigger className="col-span-2">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
+                    <FormControl>
+                      <SelectTrigger className="col-span-2">
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
                     <SelectContent>
                       {categories?.data.length ? (
                         categories.data.map((category) => (
@@ -130,6 +158,29 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
                     <span className="ml-2">Create</span>
                   </Button>
                 </fieldset>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="assign_alias"
+            render={({ field }) => (
+              <FormItem className="space-y-2 rounded-lg border bg-background p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <FormLabel className="flex-1">Assign alias</FormLabel>
+                  <FormControl>
+                    <Switch
+                      disabled={form.formState.isSubmitting}
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </div>
+                <FormDescription>
+                  If enabled, you can assign an alias to the selected category for future reference.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -191,11 +242,9 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
           setSelectedCategoryAlias(null);
         }}
         onSubmitSuccess={async (category) => {
-          await queryClient.refetchQueries({ predicate: queryMather(["categories"]) });
+          await refetch();
           form.setValue("mapping.id", category.id);
-        }}
-        defaultValues={{
-          aliases: selectedCategoryAlias ? [selectedCategoryAlias] : [""],
+          form.setValue("assign_alias", true);
         }}
       />
     </>
@@ -204,6 +253,10 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
 
 export const MappingStep: React.FC = () => {
   const { isMobile, mappings, resetState, startImport } = useImportDialog();
+
+  const [aliasesToMap] = React.useState<CategoryMapping[]>([
+    ...mappings.filter((mapping) => !mapping.id),
+  ]);
   const [currentIndex, setCurrentIndex] = React.useState(0);
 
   const onMappingComplete = React.useCallback(() => {
@@ -215,8 +268,8 @@ export const MappingStep: React.FC = () => {
   const Description = isMobile ? DrawerDescription : DialogDescription;
   const Footer = isMobile ? DrawerFooter : DialogFooter;
 
-  const currentMapping = mappings[currentIndex];
-  const percentage = getPercentageFromTotal(currentIndex, mappings.length);
+  const currentMapping = aliasesToMap[currentIndex];
+  const percentage = getPercentageFromTotal(currentIndex, aliasesToMap.length);
 
   return (
     <>
@@ -227,15 +280,17 @@ export const MappingStep: React.FC = () => {
         </Description>
       </Header>
 
-      <div className="overflow-hidden">
-        <Progress value={percentage} />
-        <p className="mt-1 flex items-center justify-between px-0.5 text-xs font-medium text-muted-foreground">
-          <span className="truncate">
-            Reviewed {currentIndex} of {mappings.length} categories
-          </span>
-          <span className="ml-2">{percentage}%</span>
-        </p>
-      </div>
+      {!!aliasesToMap.length && (
+        <div className="overflow-hidden">
+          <Progress value={percentage} />
+          <p className="mt-1 flex items-center justify-between px-0.5 text-xs font-medium text-muted-foreground">
+            <span className="truncate">
+              Reviewed {currentIndex} of {aliasesToMap.length} categories
+            </span>
+            <span className="ml-2">{percentage}%</span>
+          </p>
+        </div>
+      )}
 
       {currentMapping ? (
         <MappingForm
@@ -245,10 +300,12 @@ export const MappingStep: React.FC = () => {
         />
       ) : (
         <>
-          <div className="flex flex-col gap-1.5 rounded-2xl border border-primary/10 bg-primary/5 p-2.5">
+          <div className="flex flex-col gap-1.5 rounded-2xl border border-primary/10 bg-primary/5 p-4 shadow dark:shadow-black">
             <h3 className="font-semibold leading-none tracking-tight">Mapping complete</h3>
             <p className="text-sm text-muted-foreground">
-              All categories have been reviewed. You can continue to import your transactions.
+              {aliasesToMap.length === 0
+                ? "No categories require mapping. You can proceed with importing your transactions."
+                : "All categories have been reviewed. You can continue with importing your transactions."}
             </p>
           </div>
 

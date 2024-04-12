@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import React from "react";
 import {
   Section,
   SectionContent,
@@ -7,8 +8,10 @@ import {
   SectionHeader,
   SectionTitle,
 } from "@/components/ui/section";
-import { TransactionsTable } from "@/features/data-hub";
+import { TransactionsTableSkeleton } from "@/features/data-hub";
 import { ExpensesChart, Metric } from "@/features/monitoring";
+
+import { Transactions } from "../data-hub/transactions";
 
 const data = [
   { timestamp: new Date("2021-01-01").getTime() },
@@ -98,7 +101,9 @@ export default function DashboardPage() {
           <SectionDescription>Track financial activities over time.</SectionDescription>
         </SectionHeader>
         <SectionContent>
-          <TransactionsTable />
+          <React.Suspense fallback={<TransactionsTableSkeleton />}>
+            <Transactions />
+          </React.Suspense>
         </SectionContent>
       </Section>
     </div>

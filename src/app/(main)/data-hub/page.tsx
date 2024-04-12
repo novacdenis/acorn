@@ -20,18 +20,6 @@ export const metadata: Metadata = {
 export default async function ImportPage() {
   return (
     <div className="container">
-      <Section>
-        <SectionHeader>
-          <SectionTitle>Transactions</SectionTitle>
-          <SectionDescription>Track financial activities over time.</SectionDescription>
-        </SectionHeader>
-        <SectionContent>
-          <React.Suspense fallback={<TransactionsTableSkeleton />}>
-            <Transactions />
-          </React.Suspense>
-        </SectionContent>
-      </Section>
-
       <Section className="mt-5">
         <SectionHeader>
           <SectionTitle>Categories</SectionTitle>
@@ -42,6 +30,18 @@ export default async function ImportPage() {
         <SectionContent>
           <React.Suspense fallback={<CategoriesTableSkeleton />}>
             <Categories />
+          </React.Suspense>
+        </SectionContent>
+      </Section>
+
+      <Section>
+        <SectionHeader>
+          <SectionTitle>Transactions</SectionTitle>
+          <SectionDescription>Track financial activities over time.</SectionDescription>
+        </SectionHeader>
+        <SectionContent>
+          <React.Suspense fallback={<TransactionsTableSkeleton />}>
+            <Transactions />
           </React.Suspense>
         </SectionContent>
       </Section>

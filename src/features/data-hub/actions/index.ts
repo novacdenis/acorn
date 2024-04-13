@@ -17,7 +17,9 @@ export async function getAllCategories(
 ): Promise<PaginatedResponse<Category>> {
   const supabase = createClient();
 
-  const request = supabase.from("categories").select();
+  const request = supabase
+    .from("categories")
+    .select("*, transactions(id,amount)", { count: "exact" });
   const { filter, page = 1, take = 10, orderBy, orderDirection } = query ?? {};
 
   if (filter) {
@@ -34,8 +36,26 @@ export async function getAllCategories(
     throw new Error(response.error.message);
   }
 
+  const data: Category[] = [];
+
+  for (const category of response.data) {
+    let sum = 0;
+
+    for (const transaction of category.transactions) {
+      sum += transaction.amount;
+    }
+
+    data.push({
+      ...category,
+      transactions: {
+        count: category.transactions.length,
+        sum,
+      },
+    });
+  }
+
   return {
-    data: response.data,
+    data,
     meta: {
       page,
       take,

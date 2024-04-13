@@ -202,39 +202,36 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Color</FormLabel>
-                  <FormControl>
-                    <fieldset className="relative">
-                      <span className="absolute inset-y-0 left-0 flex items-center justify-center px-1">
-                        <input
-                          type="color"
-                          className="h-9 w-9 border"
-                          value={field.value}
-                          onChange={(e) => form.setValue("color", e.target.value)}
-                        />
-                      </span>
+                  <fieldset className="relative">
+                    <span className="absolute inset-y-0 left-0 flex items-center justify-center px-1">
+                      <input
+                        type="color"
+                        className="h-9 w-9 border"
+                        value={field.value}
+                        onChange={(e) => form.setValue("color", e.target.value)}
+                      />
+                    </span>
+                    <FormControl>
                       <Input
                         {...field}
                         placeholder="Enter a color"
                         className="pl-11 pr-20"
                         disabled={form.formState.isSubmitting}
                       />
-                      <span className="absolute inset-y-0 right-0 flex items-center justify-center px-1">
-                        <Button
-                          size="sm"
-                          onClick={() => form.setValue("color", generateRandomHex())}
-                        >
-                          Generate
-                        </Button>
-                      </span>
-                    </fieldset>
-                  </FormControl>
+                    </FormControl>
+                    <span className="absolute inset-y-0 right-0 flex items-center justify-center px-1">
+                      <Button size="sm" onClick={() => form.setValue("color", generateRandomHex())}>
+                        Generate
+                      </Button>
+                    </span>
+                  </fieldset>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
             <div>
-              <FormLabel>Aliases (optional)</FormLabel>
+              <FormLabel htmlFor="aliases.0.value">Aliases (optional)</FormLabel>
               <div className="mt-1 space-y-2">
                 {formAliases.fields.map((alias, index) => (
                   <FormField
@@ -247,6 +244,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                           <FormControl>
                             <Input
                               {...field}
+                              id={`aliases.${index}.value`}
                               autoComplete="off"
                               placeholder="Enter an alias"
                               disabled={form.formState.isSubmitting}

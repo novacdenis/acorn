@@ -3,8 +3,7 @@
 import type { Category } from "../../types";
 
 import React from "react";
-import { format } from "date-fns";
-import { cn } from "@/utils";
+import { cn, formatNumber } from "@/utils";
 
 import styles from "./row.module.css";
 
@@ -45,13 +44,15 @@ export const Row: React.FC<RowProps> = ({ data, onClick }) => {
         />
         <span className="ml-1.5 truncate text-sm md:ml-2 md:text-base">{data.name}</span>
       </p>
-      <time
-        dateTime={data.created_at}
+      <p
         className="truncate text-sm text-muted-foreground md:text-base md:text-primary"
-        style={{ gridArea: "created_at" }}
+        style={{ gridArea: "transactions" }}
       >
-        {format(data.created_at, "MMM d, yyyy, HH:mm")}
-      </time>
+        <span>{formatNumber(data.transactions?.sum ?? 0, { decimals: 0 })} MDL</span>
+        <span className="ml-1">
+          ({formatNumber(data.transactions?.count ?? 0, { notation: "compact" })})
+        </span>
+      </p>
       <p
         title={aliases.join(", ")}
         className={cn(

@@ -1,6 +1,7 @@
 import React from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
+import { formatNumber } from "@/utils";
 
 import { useTransactionsTable } from "./transactions-table";
 
@@ -16,11 +17,13 @@ export const Pagination: React.FC<PaginationProps> = ({ page, total, take }) => 
   const totalPages = Math.ceil(total / take);
   const hasPrevious = page > 1;
   const hasNext = page < totalPages;
+  const from = total === 0 ? 0 : page * take - take + 1;
+  const to = Math.min(page * take, total);
 
   return (
     <nav className="mt-5 flex items-center justify-end gap-4" aria-label="Pagination">
       <p className="text-sm text-muted-foreground md:text-base">
-        {total === 0 ? 0 : page * take - take + 1} - {Math.min(page * take, total)} of {total}
+        {from} - {to} of {formatNumber(total)}
       </p>
       <ul className="flex gap-2">
         <li>

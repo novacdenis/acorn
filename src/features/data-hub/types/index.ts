@@ -5,6 +5,10 @@ export interface Category {
   name: string;
   color: string;
   aliases: string[];
+  transactions?: {
+    count: number;
+    sum: number;
+  };
   user_id: string;
   created_at: string;
   updated_at: string;

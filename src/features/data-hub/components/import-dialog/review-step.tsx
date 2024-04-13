@@ -202,8 +202,8 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Amount</FormLabel>
-                <FormControl>
-                  <fieldset className="relative">
+                <fieldset className="relative">
+                  <FormControl>
                     <Input
                       {...field}
                       type="number"
@@ -213,11 +213,11 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
                       value={field.value ?? ""}
                       disabled={form.formState.isSubmitting}
                     />
-                    <span className="pointer-events-none absolute inset-y-0 right-0 flex w-14 items-center px-3 text-sm font-semibold text-muted-foreground">
-                      MDL
-                    </span>
-                  </fieldset>
-                </FormControl>
+                  </FormControl>
+                  <span className="pointer-events-none absolute inset-y-0 right-0 flex w-14 items-center px-3 text-sm font-light text-muted-foreground">
+                    MDL
+                  </span>
+                </fieldset>
                 <FormMessage />
               </FormItem>
             )}
@@ -273,12 +273,14 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ transaction, onComplete }) => {
                 <FormItem className="col-span-2">
                   <FormLabel>Time</FormLabel>
                   <fieldset className="relative">
-                    <Input
-                      {...field}
-                      type="time"
-                      className="pr-11"
-                      disabled={form.formState.isSubmitting}
-                    />
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="time"
+                        className="pr-11"
+                        disabled={form.formState.isSubmitting}
+                      />
+                    </FormControl>
                     <button
                       className="absolute inset-y-0 right-0 flex items-center justify-center rounded-xl px-3 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                       onClick={(event) => {

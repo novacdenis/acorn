@@ -1,6 +1,6 @@
 .area {
   grid-template-areas: "name aliases" "transactions aliases";
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto 1fr;
   place-items: start normal;
 }
 

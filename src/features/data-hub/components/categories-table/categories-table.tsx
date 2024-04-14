@@ -47,13 +47,17 @@ export const CategoriesTable: React.FC = () => {
     placeholderData: keepPreviousData,
   });
 
+  const onChangeQuery = React.useCallback((query: Partial<CategoriesQuery>) => {
+    setQuery((prev) => ({ ...prev, ...query }));
+  }, []);
+
   const loading = isLoading || isFetching;
 
   return (
     <CategoriesTableContext.Provider
       value={{
         query,
-        onChangeQuery: setQuery,
+        onChangeQuery,
         onOpenForm: () => setIsFormOpen(true),
       }}
     >

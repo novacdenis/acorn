@@ -17,7 +17,7 @@ export default function LoginPage({
   return (
     <>
       {searchParams.callback_error && (
-        <Alert variant="destructive" className="mb-5">
+        <Alert variant="destructive" className="mx-auto mb-5 max-w-md">
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{searchParams.callback_error}</AlertDescription>
         </Alert>

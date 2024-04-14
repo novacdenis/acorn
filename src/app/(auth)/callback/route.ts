@@ -6,6 +6,11 @@ export async function GET(request: Request) {
 
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
+  const error = searchParams.get("error_description");
+
+  if (error) {
+    return NextResponse.redirect(`${origin}/login?callback_error=${encodeURIComponent(error)}`);
+  }
 
   if (code) {
     const supabase = createClient();

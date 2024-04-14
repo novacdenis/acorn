@@ -24,7 +24,7 @@ export const BANK_OPTIONS: Record<
 export const CATEGORIES_DEFAULT_QUERY = {
   page: 1,
   take: 10,
-  orderBy: "created_at",
+  orderBy: "transactions_sum",
   orderDirection: "desc",
 } satisfies CategoriesQuery;
 

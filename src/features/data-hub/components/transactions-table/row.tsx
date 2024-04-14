@@ -31,6 +31,7 @@ export const Row: React.FC<RowProps> = ({ data, onClick }) => {
       }}
     >
       <p
+        title={data.description}
         className="truncate text-sm text-muted-foreground md:text-base md:text-primary"
         style={{ gridArea: "description" }}
       >
@@ -44,7 +45,7 @@ export const Row: React.FC<RowProps> = ({ data, onClick }) => {
         {formatNumber(data.amount, { decimals: 2 })} MDL
       </p>
       <p
-        title={data.description}
+        title={data.category?.name || "Uncategorized"}
         className="flex items-center overflow-hidden"
         style={{ gridArea: "category" }}
       >

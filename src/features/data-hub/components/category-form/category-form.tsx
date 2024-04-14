@@ -206,7 +206,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                     <span className="absolute inset-y-0 left-0 flex items-center justify-center px-1">
                       <input
                         type="color"
-                        className="h-9 w-9 border"
+                        className="h-9 w-9 rounded-lg focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                         value={field.value}
                         onChange={(e) => form.setValue("color", e.target.value)}
                       />

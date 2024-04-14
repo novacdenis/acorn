@@ -49,7 +49,7 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <form className="space-y-4">
+    <form className="mx-auto max-w-md space-y-4">
       <Button
         variant="outline"
         size="lg"

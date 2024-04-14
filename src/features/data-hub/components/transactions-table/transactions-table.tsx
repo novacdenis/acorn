@@ -50,13 +50,17 @@ export const TransactionsTable: React.FC = () => {
     placeholderData: keepPreviousData,
   });
 
+  const onChangeQuery = React.useCallback((query: Partial<TransactionsQuery>) => {
+    setQuery((prev) => ({ ...prev, ...query }));
+  }, []);
+
   const loading = isLoading || isFetching;
 
   return (
     <TransactionsTableContext.Provider
       value={{
         query,
-        onChangeQuery: setQuery,
+        onChangeQuery,
         onOpenForm: () => setIsFormOpen(true),
       }}
     >
@@ -114,10 +118,10 @@ export const TransactionsTable: React.FC = () => {
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmitSuccess={() => {
-          queryClient.refetchQueries({ predicate: queryMather(["transactions"]) });
+          queryClient.refetchQueries({ predicate: queryMather(["categories", "transactions"]) });
         }}
         onDeleteSuccess={() => {
-          queryClient.refetchQueries({ predicate: queryMather(["transactions"]) });
+          queryClient.refetchQueries({ predicate: queryMather(["categories", "transactions"]) });
         }}
         defaultValues={selectedTransaction}
       />

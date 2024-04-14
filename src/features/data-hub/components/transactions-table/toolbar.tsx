@@ -34,7 +34,7 @@ export const Toolbar: React.FC = () => {
   const [filter, setFilter] = React.useState(query?.filter ?? "");
 
   const debouncedSetQueryFilter = useDebouncedCallback(
-    (value: string) => onChangeQuery({ filter: value }),
+    (value: string) => onChangeQuery({ filter: value, page: 1 }),
     300
   );
 

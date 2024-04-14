@@ -16,19 +16,19 @@ export async function getAllCategories(
   query?: CategoriesQuery
 ): Promise<PaginatedResponse<Category>> {
   const supabase = createClient();
-
   const request = supabase
     .from("categories")
     .select("*, transactions(id,amount)", { count: "exact" });
-  const { filter, page = 1, take = 10, orderBy, orderDirection } = query ?? {};
 
-  if (filter) {
-    request.ilike("name", `%${filter}%`);
+  if (query?.filter) {
+    request.ilike("name", `%${query.filter}%`);
   }
-  if (orderBy && orderDirection) {
-    request.order(orderBy, { ascending: orderDirection === "asc" });
+  if (query?.orderBy && query?.orderDirection) {
+    request.order(query.orderBy, { ascending: query.orderDirection === "asc" });
   }
-  request.range((page - 1) * take, page * take - 1);
+  if (query?.page && query?.take) {
+    request.range((query.page - 1) * query.take, query.page * query.take - 1);
+  }
 
   const response = await request;
 
@@ -57,8 +57,8 @@ export async function getAllCategories(
   return {
     data,
     meta: {
-      page,
-      take,
+      page: query?.page ?? 1,
+      take: query?.take ?? response.data.length,
       total: response.count ?? response.data.length,
     },
   };
@@ -66,7 +66,6 @@ export async function getAllCategories(
 
 export async function createCategory(data: CreateCategoryBody) {
   const supabase = createClient();
-
   const response = await supabase
     .from("categories")
     .insert({
@@ -130,15 +129,15 @@ export async function getAllTransactions(
     .from("transactions")
     .select("*, category:categories(*)", { count: "exact" });
 
-  const { filter, page = 1, take = 10, orderBy, orderDirection } = query ?? {};
-
-  if (filter) {
-    request.ilike("description", `%${filter}%`);
+  if (query?.filter) {
+    request.ilike("description", `%${query.filter}%`);
   }
-  if (orderBy && orderDirection) {
-    request.order(orderBy, { ascending: orderDirection === "asc" });
+  if (query?.orderBy && query?.orderDirection) {
+    request.order(query.orderBy, { ascending: query.orderDirection === "asc" });
   }
-  request.range((page - 1) * take, page * take - 1);
+  if (query?.page && query?.take) {
+    request.range((query.page - 1) * query.take, query.page * query.take - 1);
+  }
 
   const response = await request;
 
@@ -149,8 +148,8 @@ export async function getAllTransactions(
   return {
     data: response.data,
     meta: {
-      page,
-      take,
+      page: query?.page ?? 1,
+      take: query?.take ?? response.data.length,
       total: response.count ?? response.data.length,
     },
   };

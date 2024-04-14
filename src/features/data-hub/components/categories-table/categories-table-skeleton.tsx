@@ -43,7 +43,7 @@ export const CategoriesTableSkeleton: React.FC<CategoriesTableSkeletonProps> = (
                 }}
               />
             </div>
-            <div className="flex h-5 items-center md:h-6" style={{ gridArea: "created_at" }}>
+            <div className="flex h-5 items-center md:h-6" style={{ gridArea: "transactions" }}>
               <Skeleton
                 className="h-3.5 md:h-4"
                 style={{

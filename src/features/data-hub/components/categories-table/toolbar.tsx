@@ -23,7 +23,7 @@ export const Toolbar: React.FC = () => {
   const [filter, setFilter] = React.useState(query?.filter ?? "");
 
   const debouncedSetQueryFilter = useDebouncedCallback(
-    (value: string) => onChangeQuery({ filter: value }),
+    (value: string) => onChangeQuery({ filter: value, page: 1 }),
     300
   );
 
@@ -66,9 +66,12 @@ export const Toolbar: React.FC = () => {
                 onChangeQuery({ orderBy, orderDirection });
               }}
             >
-              <DropdownMenuRadioItem value="name|asc">Name: A to Z</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="name|desc">Name: Z to A</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="created_at|asc">Date: Oldest</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="transactions_sum|desc">
+                Total: High to Low
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="transactions_count|desc">
+                Transactions: High to Low
+              </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="created_at|desc">Date: Newest</DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>

@@ -99,3 +99,31 @@ export class VBHtmlParser {
     return extractedTransactions;
   }
 }
+
+export function getSimilarTransactions(
+  all: ExtractedTransaction[],
+  current?: ExtractedTransaction
+) {
+  if (!current) {
+    return [];
+  }
+
+  const similar: ExtractedTransaction[] = [];
+
+  for (const transaction of all) {
+    if (transaction.uid === current.uid) {
+      continue;
+    }
+    if (transaction.status !== "idle") {
+      continue;
+    }
+    if (
+      transaction.data.category === current.data.category &&
+      transaction.data.description === current.data.description
+    ) {
+      similar.push(transaction);
+    }
+  }
+
+  return similar;
+}

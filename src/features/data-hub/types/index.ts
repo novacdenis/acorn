@@ -54,6 +54,10 @@ interface ExtractedTransactionIdleStatus {
   status: "idle";
 }
 
+interface ExtractedTransactionSkipStatus {
+  status: "skip";
+}
+
 interface ExtractedTransactionLoadingStatus {
   status: "loading";
 }
@@ -79,6 +83,7 @@ export interface ExtractedTransactionBase {
 }
 export type ExtractedTransactionStatus =
   | ExtractedTransactionIdleStatus
+  | ExtractedTransactionSkipStatus
   | ExtractedTransactionLoadingStatus
   | ExtractedTransactionErrorStatus
   | ExtractedTransactionDoneStatus;

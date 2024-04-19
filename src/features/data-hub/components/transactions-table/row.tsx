@@ -32,7 +32,7 @@ export const Row: React.FC<RowProps> = ({ data, onClick }) => {
     >
       <p
         title={data.description}
-        className="truncate text-sm text-muted-foreground md:text-base md:text-primary"
+        className="truncate text-sm md:text-base"
         style={{ gridArea: "description" }}
       >
         {data.description || "Uncategorized"}
@@ -46,7 +46,7 @@ export const Row: React.FC<RowProps> = ({ data, onClick }) => {
       </p>
       <p
         title={data.category?.name || "Uncategorized"}
-        className="flex items-center overflow-hidden"
+        className="flex items-center overflow-hidden text-muted-foreground md:text-primary"
         style={{ gridArea: "category" }}
       >
         <span
@@ -59,10 +59,9 @@ export const Row: React.FC<RowProps> = ({ data, onClick }) => {
           {data.category?.name || "Uncategorized"}
         </span>
       </p>
-
       <time
         dateTime={data.timestamp}
-        className="truncate text-sm text-muted-foreground md:text-base md:text-primary"
+        className="justify-self-end truncate text-sm text-muted-foreground md:justify-self-start md:text-base md:text-primary"
         style={{ gridArea: "timestamp" }}
       >
         {format(data.timestamp, "MMM d, yyyy, HH:mm")}

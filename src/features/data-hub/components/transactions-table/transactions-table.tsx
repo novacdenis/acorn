@@ -16,7 +16,7 @@ import { Row } from "./row";
 import { Toolbar } from "./toolbar";
 import { getAllTransactions } from "../../actions";
 import { TRANSACTIONS_DEFAULT_QUERY } from "../../constants";
-import { useImportDialogStore } from "../import-dialog-v2";
+import { useImportDialogStore } from "../../store";
 import { TransactionForm } from "../transaction-form";
 
 interface TransactionsTableContextValue {
@@ -37,7 +37,7 @@ export const useTransactionsTable = () => {
 };
 
 export const TransactionsTable: React.FC = () => {
-  const [setIsImportOpen] = useImportDialogStore((store) => [store.onOpenChange]);
+  const [setIsImportOpen] = useImportDialogStore((store) => [store.setOpen]);
   const [query, setQuery] = React.useState<TransactionsQuery>(TRANSACTIONS_DEFAULT_QUERY);
   const [isFormOpen, setIsFormOpen] = React.useState(false);
   const [selectedTransaction, setSelectedTransaction] = React.useState<Transaction>();

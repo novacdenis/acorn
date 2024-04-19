@@ -1,11 +1,10 @@
-"use client";
-
 import type { CategoryMapping } from "../../types";
 
 import React from "react";
 import { PlusIcon } from "@heroicons/react/20/solid";
 import { valibotResolver } from "@hookform/resolvers/valibot";
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import * as v from "valibot";
 import {
@@ -16,6 +15,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
+  AlertDialogOverlay,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
@@ -40,7 +40,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { getPercentageFromTotal } from "@/utils";
+import { formatNumber, getPercentageFromTotal } from "@/utils";
 
 import { useImportDialog } from "./import-dialog";
 import { getAllCategories, updateCategory } from "../../actions";
@@ -58,18 +58,18 @@ type FormValues = v.Input<typeof scheme>;
 
 interface MappingFormProps {
   mapping: CategoryMapping;
-  onComplete: () => void;
+  onSkip: () => void;
+  onMap: (alias: string, category_id: number) => void;
 }
 
-const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
-  const [isCategoryFormOpen, setIsCategoryFormOpen] = React.useState(false);
-  const [selectedCategoryAlias, setSelectedCategoryAlias] = React.useState<string | null>(null);
-
-  const { isMobile, resetState, updateMapping } = useImportDialog();
+const MappingForm: React.FC<MappingFormProps> = ({ mapping, onSkip, onMap }) => {
+  const { isMobile, transactions, onCloseImport } = useImportDialog();
   const { data: categories, refetch } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => await getAllCategories(),
   });
+
+  const [isCategoryFormOpen, setIsCategoryFormOpen] = React.useState(false);
 
   const form = useForm<FormValues>({
     defaultValues: {
@@ -79,14 +79,7 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
     resolver: valibotResolver(scheme),
   });
 
-  const onSkip = () => {
-    updateMapping(mapping.alias, undefined);
-    onComplete();
-  };
-
   const onSubmit = async (values: FormValues) => {
-    updateMapping(values.mapping.alias, values.mapping.id);
-
     if (values.assign_alias) {
       const category = categories?.data.find((category) => category.id === values.mapping.id);
 
@@ -98,10 +91,13 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
       }
     }
 
-    onComplete();
+    onMap(mapping.alias, values.mapping.id);
   };
 
   const Footer = isMobile ? DrawerFooter : DialogFooter;
+  const aliasTransactions = transactions.filter(
+    (transaction) => transaction.data.category_alias === mapping.alias
+  );
 
   return (
     <>
@@ -115,8 +111,13 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
             name="mapping.id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{mapping.alias}</FormLabel>
-                <fieldset className="grid grid-cols-3 gap-2">
+                <FormLabel>Category</FormLabel>
+                <fieldset
+                  className="grid grid-cols-2 gap-2"
+                  style={{
+                    gridTemplateColumns: "1fr auto",
+                  }}
+                >
                   <Select
                     value={field.value?.toString()}
                     onValueChange={(value) => {
@@ -127,7 +128,7 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
                     disabled={form.formState.isSubmitting}
                   >
                     <FormControl>
-                      <SelectTrigger className="col-span-2">
+                      <SelectTrigger>
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                     </FormControl>
@@ -147,21 +148,49 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
                   </Select>
                   <Button
                     variant="ghost"
-                    className="col-span-1 border border-dashed bg-background"
+                    className="border border-dashed bg-background"
                     disabled={form.formState.isSubmitting}
                     onClick={() => {
                       setIsCategoryFormOpen(true);
-                      setSelectedCategoryAlias(mapping.alias);
                     }}
                   >
                     <PlusIcon className="h-5 w-5" />
                     <span className="ml-2">Create</span>
                   </Button>
                 </fieldset>
+                <FormDescription>
+                  Select a category to map the <span className="text-primary">{mapping.alias}</span>{" "}
+                  alias.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          <div>
+            <h3 className="pl-1.5 text-sm font-medium leading-none">Transactions</h3>
+            <div className="mt-2 overflow-hidden rounded-lg border bg-background">
+              <ul className="max-h-56 divide-y divide-primary/10 overflow-y-auto">
+                {aliasTransactions.slice(0, 10).map((transaction) => (
+                  <li key={transaction.uid} className="p-3">
+                    <h3 className="text-sm">{transaction.data.description}</h3>
+                    <p className="mt-0.5 text-sm text-muted-foreground">
+                      <span>{format(transaction.data.timestamp, "MMM d, yyyy, HH:mm")}</span>
+                      <span className="mx-1 inline-block">•</span>
+                      <span>{formatNumber(transaction.data.amount, { decimals: 2 })} MDL</span>
+                    </p>
+                  </li>
+                ))}
+                {aliasTransactions.length > 10 && (
+                  <li>
+                    <p className="p-2 text-center text-sm text-primary">
+                      + {formatNumber(aliasTransactions.length - 10)} more
+                    </p>
+                  </li>
+                )}
+              </ul>
+            </div>
+          </div>
 
           <FormField
             control={form.control}
@@ -179,7 +208,8 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
                   </FormControl>
                 </div>
                 <FormDescription>
-                  If enabled, you can assign an alias to the selected category for future reference.
+                  If enabled, the <span className="text-primary">{mapping.alias}</span> alias will
+                  be added to the selected category for future reference.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -189,23 +219,9 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
       </Form>
 
       <Footer className="justify-between">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="secondary">Cancel</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                By cancelling, all changes will be lost. Are you sure you want to cancel?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Go back</AlertDialogCancel>
-              <AlertDialogAction onClick={resetState}>Yes, cancel</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <Button variant="secondary" disabled={form.formState.isSubmitting} onClick={onCloseImport}>
+          Cancel
+        </Button>
 
         <div className="flex items-center gap-2">
           <AlertDialog>
@@ -214,37 +230,37 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
                 Skip
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  By skipping, the category will be left unmapped. You&apos;ll have to assign a
-                  category to each transaction manually.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Go back</AlertDialogCancel>
-                <AlertDialogAction onClick={onSkip}>Yes, skip</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
+            <AlertDialogOverlay className="absolute rounded-2xl">
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Transactions with the <span className="text-primary">{mapping.alias}</span>{" "}
+                    alias will be skipped during the import. Are you sure you want to skip this
+                    alias?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>No, continue</AlertDialogCancel>
+                  <AlertDialogAction onClick={onSkip}>Yes, skip</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialogOverlay>
           </AlertDialog>
           <Button disabled={form.formState.isSubmitting} onClick={form.handleSubmit(onSubmit)}>
-            Confirm mapping
+            Confirm
           </Button>
         </div>
       </Footer>
 
       <CategoryForm
-        key={selectedCategoryAlias}
         open={isCategoryFormOpen}
         onClose={() => {
           setIsCategoryFormOpen(false);
-          setSelectedCategoryAlias(null);
         }}
         onSubmitSuccess={async (category) => {
           await refetch();
           form.setValue("mapping.id", category.id);
-          form.setValue("assign_alias", true);
         }}
       />
     </>
@@ -252,16 +268,38 @@ const MappingForm: React.FC<MappingFormProps> = ({ mapping, onComplete }) => {
 };
 
 export const MappingStep: React.FC = () => {
-  const { isMobile, mappings, resetState, startImport } = useImportDialog();
+  const { isMobile, mappings, onMappingComplete, onCloseImport } = useImportDialog();
 
-  const [aliasesToMap] = React.useState<CategoryMapping[]>([
-    ...mappings.filter((mapping) => !mapping.id),
-  ]);
+  const [aliasesToMap, setAliasesToMap] = React.useState<CategoryMapping[]>(
+    [...mappings].filter((mapping) => !mapping.category_id)
+  );
   const [currentIndex, setCurrentIndex] = React.useState(0);
 
-  const onMappingComplete = React.useCallback(() => {
+  const setNextIndex = React.useCallback(() => {
     setCurrentIndex((prev) => prev + 1);
   }, []);
+
+  const onMap = React.useCallback(
+    (alias: string, category_id: number) => {
+      setAliasesToMap((prev) =>
+        prev.map((mapping) => (mapping.alias === alias ? { ...mapping, category_id } : mapping))
+      );
+      setNextIndex();
+    },
+    [setNextIndex]
+  );
+
+  const onContinue = () => {
+    onMappingComplete(
+      mappings.map((mapping) => {
+        const alias = aliasesToMap.find((a) => a.alias === mapping.alias);
+        return {
+          ...mapping,
+          category_id: alias?.category_id,
+        };
+      })
+    );
+  };
 
   const Header = isMobile ? DrawerHeader : DialogHeader;
   const Title = isMobile ? DrawerTitle : DialogTitle;
@@ -280,54 +318,37 @@ export const MappingStep: React.FC = () => {
         </Description>
       </Header>
 
-      {!!aliasesToMap.length && (
-        <div className="overflow-hidden">
-          <Progress value={percentage} />
-          <p className="mt-1 flex items-center justify-between px-0.5 text-xs font-medium text-muted-foreground">
-            <span className="truncate">
-              Reviewed {currentIndex} of {aliasesToMap.length} categories
-            </span>
-            <span className="ml-2">{percentage}%</span>
-          </p>
-        </div>
-      )}
+      <div className="overflow-hidden">
+        <Progress value={percentage} />
+        <p className="mt-1 flex items-center justify-between px-0.5 text-xs font-medium text-muted-foreground">
+          <span className="truncate">
+            Mapped {currentIndex} of {aliasesToMap.length} categories
+          </span>
+          <span className="ml-2">{percentage}%</span>
+        </p>
+      </div>
 
       {currentMapping ? (
         <MappingForm
           key={currentMapping.alias}
           mapping={currentMapping}
-          onComplete={onMappingComplete}
+          onSkip={setNextIndex}
+          onMap={onMap}
         />
       ) : (
         <>
           <div className="flex flex-col gap-1.5 rounded-2xl border border-primary/10 bg-primary/5 p-4 shadow dark:shadow-black">
             <h3 className="font-semibold leading-none tracking-tight">Mapping complete</h3>
             <p className="text-sm text-muted-foreground">
-              {aliasesToMap.length === 0
-                ? "No categories require mapping. You can proceed with importing your transactions."
-                : "All categories have been reviewed. You can continue with importing your transactions."}
+              All categories have been mapped. You can continue with importing your transactions.
             </p>
           </div>
 
           <Footer>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="secondary">Cancel</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    By cancelling, all changes will be lost. Are you sure you want to cancel?
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Go back</AlertDialogCancel>
-                  <AlertDialogAction onClick={resetState}>Yes, cancel</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            <Button onClick={startImport}>Continue</Button>
+            <Button variant="secondary" onClick={onCloseImport}>
+              Cancel
+            </Button>
+            <Button onClick={onContinue}>Continue</Button>
           </Footer>
         </>
       )}

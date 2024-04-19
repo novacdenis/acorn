@@ -16,9 +16,7 @@ export async function getAllCategories(
   query?: CategoriesQuery
 ): Promise<PaginatedResponse<Category>> {
   const supabase = createClient();
-  const request = supabase
-    .from("categories")
-    .select("*, transactions(id,amount)", { count: "exact" });
+  const request = supabase.from("categories").select("*, transactions(*)", { count: "exact" });
 
   if (query?.filter) {
     request.ilike("name", `%${query.filter}%`);
@@ -47,10 +45,8 @@ export async function getAllCategories(
 
     data.push({
       ...category,
-      transactions: {
-        count: category.transactions.length,
-        sum,
-      },
+      transactions_sum: sum,
+      transactions_count: category.transactions.length,
     });
   }
 
@@ -76,7 +72,7 @@ export async function createCategory(data: CreateCategoryBody) {
         .filter(Boolean)
         .filter((value, index, self) => self.indexOf(value) === index),
     })
-    .select()
+    .select("*")
     .single();
 
   if (response.error) {
@@ -100,7 +96,7 @@ export async function updateCategory(id: number, data: Partial<CreateCategoryBod
         .filter((value, index, self) => self.indexOf(value) === index),
     })
     .match({ id })
-    .select()
+    .select("*")
     .single();
 
   if (response.error) {
@@ -112,7 +108,7 @@ export async function updateCategory(id: number, data: Partial<CreateCategoryBod
 
 export async function deleteCategory(id: number) {
   const supabase = createClient();
-  const response = await supabase.from("categories").delete().match({ id }).select().single();
+  const response = await supabase.from("categories").delete().match({ id }).select("*").single();
 
   if (response.error) {
     throw new Error(response.error.message);
@@ -162,7 +158,7 @@ export async function createTransaction(data: CreateTransactionBody) {
     .insert({
       description: data.description,
       amount: data.amount,
-      timestamp: data.timestamp.toISOString(),
+      timestamp: data.timestamp,
       category_id: data.category_id,
     })
     .select("*, category:categories(*)")
@@ -182,7 +178,7 @@ export async function updateTransaction(id: number, data: Partial<CreateTransact
     .update({
       description: data.description,
       amount: data.amount,
-      timestamp: data.timestamp?.toISOString(),
+      timestamp: data.timestamp,
       category_id: data.category_id,
     })
     .match({ id })

@@ -48,9 +48,9 @@ export const Row: React.FC<RowProps> = ({ data, onClick }) => {
         className="truncate text-sm text-muted-foreground md:text-base md:text-primary"
         style={{ gridArea: "transactions" }}
       >
-        <span>{formatNumber(data.transactions?.sum ?? 0, { decimals: 0 })} MDL</span>
+        <span>{formatNumber(data.transactions_sum ?? 0, { decimals: 0 })} MDL</span>
         <span className="ml-1">
-          ({formatNumber(data.transactions?.count ?? 0, { notation: "compact" })})
+          ({formatNumber(data.transactions_count ?? 0, { notation: "compact" })})
         </span>
       </p>
       <p

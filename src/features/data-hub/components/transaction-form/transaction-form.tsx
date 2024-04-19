@@ -132,7 +132,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
         timestamp: add(values.date, {
           hours: Number(values.time.split(":")[0]) ?? 0,
           minutes: Number(values.time.split(":")[1]) ?? 0,
-        }),
+        }).toISOString(),
       };
 
       let response: Transaction | undefined = undefined;
@@ -228,7 +228,12 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <fieldset className="grid grid-cols-3 gap-2">
+                    <fieldset
+                      className="grid grid-cols-2 gap-2"
+                      style={{
+                        gridTemplateColumns: "1fr auto",
+                      }}
+                    >
                       <Select
                         value={field.value?.toString()}
                         onValueChange={(value) => {
@@ -239,7 +244,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                         disabled={form.formState.isSubmitting}
                       >
                         <FormControl>
-                          <SelectTrigger className="col-span-2">
+                          <SelectTrigger>
                             <SelectValue placeholder="Select a category" />
                           </SelectTrigger>
                         </FormControl>
@@ -259,7 +264,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
                       </Select>
                       <Button
                         variant="ghost"
-                        className="col-span-1 border border-dashed bg-background"
+                        className="border border-dashed bg-background"
                         disabled={form.formState.isSubmitting}
                         onClick={() => setIsCategoryFormOpen(true)}
                       >
@@ -377,7 +382,7 @@ export const TransactionForm: React.FC<TransactionFormProps> = ({
             </form>
           </Form>
 
-          <Footer className={cn("border-t pt-4 sm:pt-5", { "justify-between": defaultValues })}>
+          <Footer className={cn({ "justify-between": defaultValues })}>
             {!!defaultValues && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>

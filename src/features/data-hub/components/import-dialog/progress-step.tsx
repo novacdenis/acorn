@@ -1,6 +1,5 @@
 import React from "react";
 import { CheckCircleIcon, InformationCircleIcon, XCircleIcon } from "@heroicons/react/16/solid";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,22 +15,13 @@ import { Button } from "@/components/ui/button";
 import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Progress } from "@/components/ui/progress";
-import { formatNumber, getPercentageFromTotal, queryMather } from "@/utils";
+import { formatNumber, getPercentageFromTotal } from "@/utils";
 
 import { useImportDialog } from "./import-dialog";
 
 export const ProgressStep: React.FC = () => {
-  const { isMobile, transactions, progress, resetState, abortImport, startReview } =
+  const { isMobile, transactions, progress, abortImport, onCloseImport, onProgressComplete } =
     useImportDialog();
-
-  const [isDismissAlertOpen, setIsDismissAlertOpen] = React.useState(false);
-
-  const queryClient = useQueryClient();
-
-  const onCancel = () => {
-    queryClient.refetchQueries({ predicate: queryMather(["transactions", "categories"]) });
-    resetState();
-  };
 
   const Header = isMobile ? DrawerHeader : DialogHeader;
   const Title = isMobile ? DrawerTitle : DialogTitle;
@@ -117,8 +107,8 @@ export const ProgressStep: React.FC = () => {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Go back</AlertDialogCancel>
-                <AlertDialogAction onClick={abortImport}>Yes, cancel</AlertDialogAction>
+                <AlertDialogCancel>No, continue</AlertDialogCancel>
+                <AlertDialogAction onClick={abortImport}>Yes, abort</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -126,38 +116,17 @@ export const ProgressStep: React.FC = () => {
 
         {isCompleted && (
           <>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                if (progress.failed > 0) setIsDismissAlertOpen(true);
-                else onCancel();
-              }}
-            >
+            <Button variant="secondary" onClick={onCloseImport}>
               Dismiss
             </Button>
-            {progress.failed > 0 && (
-              <Button onClick={startReview}>
+            {!!progress.failed && (
+              <Button onClick={onProgressComplete}>
                 Review {formatNumber(progress.failed, { notation: "compact" })} failed transactions
               </Button>
             )}
           </>
         )}
       </Footer>
-
-      <AlertDialog open={isDismissAlertOpen} onOpenChange={setIsDismissAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              If you dismiss the import, you will not be able to review failed transactions later.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Go back</AlertDialogCancel>
-            <AlertDialogAction onClick={onCancel}>Yes, dismiss</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 };

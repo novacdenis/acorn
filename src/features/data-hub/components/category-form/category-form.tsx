@@ -3,7 +3,7 @@
 import type { Category, CreateCategoryBody } from "../../types";
 
 import React from "react";
-import { PlusIcon } from "@heroicons/react/16/solid";
+import { PlusIcon } from "@heroicons/react/20/solid";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { valibotResolver } from "@hookform/resolvers/valibot";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -88,11 +88,10 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
     },
     resolver: valibotResolver(scheme),
   });
-  const formAliases = useFieldArray({
+  const aliases = useFieldArray({
     control: form.control,
     name: "aliases",
   });
-  const aliasesValues = form.watch("aliases");
 
   const onCloseHandler = () => {
     form.reset();
@@ -233,7 +232,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
             <div>
               <FormLabel htmlFor="aliases.0.value">Aliases (optional)</FormLabel>
               <div className="mt-1 space-y-2">
-                {formAliases.fields.map((alias, index) => (
+                {aliases.fields.map((alias, index) => (
                   <FormField
                     key={alias.id}
                     control={form.control}
@@ -250,7 +249,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                               disabled={form.formState.isSubmitting}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter" && e.currentTarget.value) {
-                                  formAliases.append({ value: "" });
+                                  aliases.append({ value: "" });
                                 }
                               }}
                             />
@@ -260,7 +259,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                               variant="secondary"
                               size="icon"
                               className="ml-2 shrink-0"
-                              onClick={() => formAliases.remove(index)}
+                              onClick={() => aliases.remove(index)}
                               disabled={form.formState.isSubmitting}
                             >
                               <TrashIcon className="h-5 w-5" />
@@ -278,9 +277,9 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
                 variant="outline"
                 size="sm"
                 className="mt-2"
-                onClick={() => formAliases.append({ value: "" })}
+                onClick={() => aliases.append({ value: "" })}
                 disabled={
-                  form.formState.isSubmitting || !aliasesValues[aliasesValues.length - 1].value
+                  form.formState.isSubmitting || !aliases.fields[aliases.fields.length - 1].value
                 }
               >
                 <PlusIcon className="h-4 w-4" />
@@ -290,7 +289,7 @@ export const CategoryForm: React.FC<CategoryFormProps> = ({
           </form>
         </Form>
 
-        <Footer className={cn("border-t pt-4 sm:pt-5", { "justify-between": defaultValues })}>
+        <Footer className={cn({ "justify-between": defaultValues })}>
           {!!defaultValues && (
             <AlertDialog>
               <AlertDialogTrigger asChild>

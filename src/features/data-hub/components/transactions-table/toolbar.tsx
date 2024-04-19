@@ -25,12 +25,12 @@ import { Label } from "@/components/ui/label";
 import { useDebouncedCallback } from "@/hooks";
 
 import { useTransactionsTable } from "./transactions-table";
-import { useImportDialogStore } from "../import-dialog";
+import { useImportDialogStore } from "../../store";
 
 export const Toolbar: React.FC = () => {
   const { query, onChangeQuery, onOpenForm } = useTransactionsTable();
 
-  const [setIsImportOpen] = useImportDialogStore((store) => [store.onOpenChange]);
+  const [setIsImportOpen] = useImportDialogStore((store) => [store.setOpen]);
   const [filter, setFilter] = React.useState(query?.filter ?? "");
 
   const debouncedSetQueryFilter = useDebouncedCallback(

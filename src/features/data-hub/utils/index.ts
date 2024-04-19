@@ -12,7 +12,7 @@ export class VBHtmlParser {
   }
 
   private extractTextContent(element: HTMLElement, selector: string) {
-    return element.querySelector(selector)?.textContent?.trim() || "";
+    return element.querySelector(selector)?.textContent?.replace(/(?!\S)/g, "") || "";
   }
 
   private extractDataAttribute(element: HTMLElement, selector: string, attribute: string) {
@@ -72,7 +72,7 @@ export class VBHtmlParser {
 
         for (const item of history) {
           const description = this.extractTextContent(item, ".history-item-description a");
-          const category = this.extractDataAttribute(item, ".history-item-state", "category");
+          const category_alias = this.extractDataAttribute(item, ".history-item-state", "category");
           const total = this.extractTextContent(item, ".history-item-amount.total .amount");
           const transaction = this.extractTextContent(
             item,
@@ -80,17 +80,17 @@ export class VBHtmlParser {
           );
           const amount = this.toNumber(total || transaction || "0");
           const time = this.extractTextContent(item, ".history-item-time");
-          const timestamp = this.toDate(month, date, time);
+          const timestamp = this.toDate(month, date, time).toISOString();
 
           extractedTransactions.push({
             uid: Math.random().toString(36).substring(2, 9),
             data: {
-              category,
               description,
               amount,
               timestamp,
+              category_alias,
             },
-            status: "idle",
+            status: "pending",
           });
         }
       }
@@ -100,30 +100,12 @@ export class VBHtmlParser {
   }
 }
 
-export function getSimilarTransactions(
-  all: ExtractedTransaction[],
-  current?: ExtractedTransaction
-) {
-  if (!current) {
-    return [];
+export function generateUID(used: string[]): string {
+  const uid = Math.random().toString(36).substring(2, 9);
+
+  if (used.includes(uid)) {
+    return generateUID(used);
   }
 
-  const similar: ExtractedTransaction[] = [];
-
-  for (const transaction of all) {
-    if (transaction.uid === current.uid) {
-      continue;
-    }
-    if (transaction.status !== "idle") {
-      continue;
-    }
-    if (
-      transaction.data.category === current.data.category &&
-      transaction.data.description === current.data.description
-    ) {
-      similar.push(transaction);
-    }
-  }
-
-  return similar;
+  return uid;
 }

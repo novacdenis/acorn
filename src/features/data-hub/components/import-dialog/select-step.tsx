@@ -1,6 +1,6 @@
 "use client";
 
-import type { Bank, ExtractedTransaction } from "../../types";
+import type { Bank, CategoryMapping, ExtractedTransaction } from "../../types";
 
 import React from "react";
 import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/16/solid";
@@ -18,25 +18,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
+import { createClient } from "@/lib/supabase/client";
 import { bytesToSize, cn, formatNumber, validateFile } from "@/utils";
 
 import { useImportDialog } from "./import-dialog";
 import { BANK_OPTIONS } from "../../constants";
-import { VBHtmlParser } from "../../utils";
-
-interface ProcessedFilePendingStatus {
-  status: "pending";
-}
-
-interface ProcessedFileDoneStatus {
-  status: "done";
-  transactions: ExtractedTransaction[];
-}
-
-interface ProcessedFileErrorStatus {
-  status: "error";
-  error: string;
-}
+import { VBHtmlParser, generateUID } from "../../utils";
 
 interface ProcessedFileBase {
   uid: string;
@@ -48,9 +35,15 @@ interface ProcessedFileBase {
 }
 
 type ProcessedFileStatus =
-  | ProcessedFilePendingStatus
-  | ProcessedFileDoneStatus
-  | ProcessedFileErrorStatus;
+  | { status: "pending" }
+  | {
+      status: "done";
+      data: {
+        transactions: ExtractedTransaction[];
+        mappings: CategoryMapping[];
+      };
+    }
+  | { status: "error"; error: string };
 
 type ProcessedFile = ProcessedFileBase & ProcessedFileStatus;
 
@@ -65,7 +58,7 @@ const processFiles = (files: File[], config: { bank: Bank }) => {
     });
 
     processedFiles.push({
-      uid: Math.random().toString(36).substring(2, 9),
+      uid: generateUID(processedFiles.map((f) => f.uid)),
       name: file.name.split(".").slice(0, -1).join("."),
       extension: file.name.split(".").pop() || "",
       size: file.size,
@@ -88,7 +81,25 @@ const extractTransactions = async (file: ProcessedFile) => {
       throw new Error("No transactions found in the file.");
     }
 
-    return { data: transactions, error: null };
+    const aliases = Array.from(new Set(transactions.map((t) => t.data.category_alias)));
+    const supabase = createClient();
+    const response = await supabase.from("categories").select("*").overlaps("aliases", aliases);
+    const mappings: CategoryMapping[] = [];
+
+    if (response.data) {
+      for (const alias of aliases) {
+        const category = response.data.find((c) => c.aliases.includes(alias));
+        mappings.push({ alias, category_id: category?.id });
+      }
+    }
+
+    return {
+      data: {
+        transactions,
+        mappings,
+      },
+      error: null,
+    };
   } catch (error) {
     if (error instanceof Error) {
       return { data: null, error: error.message };
@@ -110,12 +121,14 @@ const UploadStepFileStatus: React.FC<UploadStepFileStatusProps> = ({ file }) => 
   return (
     <p className="text-sm font-medium text-muted-foreground">
       <span>{bytesToSize(file.size)}</span>
-      <span className="mx-1 inline-block">•</span>
-      <span>
-        {file.status === "done"
-          ? `${formatNumber(file.transactions.length, { notation: "compact" })} transactions`
-          : "Processing file..."}
-      </span>
+      {file.status === "done" && (
+        <>
+          <span className="mx-1 inline-block">•</span>
+          <span>
+            {formatNumber(file.data.transactions.length, { notation: "compact" })} transactions
+          </span>
+        </>
+      )}
     </p>
   );
 };
@@ -140,7 +153,7 @@ const File: React.FC<FileProps> = ({ file, onRemove }) => {
             {file.status === "error" && <XCircleIcon className="h-4 w-4" />}
 
             <h3 className="ml-1.5 truncate">{file.name}</h3>
-            <h4 className="">.{file.extension}</h4>
+            <h4>.{file.extension}</h4>
           </div>
           <UploadStepFileStatus file={file} />
         </div>
@@ -160,12 +173,11 @@ const File: React.FC<FileProps> = ({ file, onRemove }) => {
 };
 
 export const SelectStep: React.FC = () => {
-  const { isMobile, startMapping, resetState } = useImportDialog();
+  const { isMobile, onSelectComplete, onCloseImport } = useImportDialog();
 
   const [bank, setBank] = React.useState<Bank>();
   const [files, setFiles] = React.useState<ProcessedFile[]>([]);
   const [isDragging, setIsDragging] = React.useState(false);
-  const [isFinishing, setIsFinishing] = React.useState(false);
 
   const inputRef = React.useRef<HTMLInputElement>(null);
   const constraints = bank && BANK_OPTIONS[bank];
@@ -199,7 +211,7 @@ export const SelectStep: React.FC = () => {
     for (const newFile of newFiles) {
       extractTransactions(newFile).then((result) => {
         if (result.data) {
-          updateFile(newFile.uid, { status: "done", transactions: result.data });
+          updateFile(newFile.uid, { status: "done", data: result.data });
         } else {
           updateFile(newFile.uid, { status: "error", error: result.error });
         }
@@ -224,9 +236,17 @@ export const SelectStep: React.FC = () => {
     }
   };
 
-  const onContinue = async () => {
-    setIsFinishing(true);
-    await startMapping(files.flatMap((file) => (file.status === "done" ? file.transactions : [])));
+  const onContinue = () => {
+    const transactions = files.flatMap((file) =>
+      file.status === "done" ? file.data.transactions : []
+    );
+    const mappings = files
+      .flatMap((file) => (file.status === "done" ? file.data.mappings : []))
+      .filter((m, i, self) => {
+        return self.findIndex((t) => t.alias === m.alias) === i;
+      });
+
+    onSelectComplete(transactions, mappings);
   };
 
   const Header = isMobile ? DrawerHeader : DialogHeader;
@@ -237,9 +257,9 @@ export const SelectStep: React.FC = () => {
   const areFilesInPendingState = files.some((f) => f.status === "pending");
   const areSomeFilesDone = files.some((f) => f.status === "done");
 
-  const isUploadEnabled = !!bank && !areFilesInPendingState && !isFinishing;
-  const isCancelEnabled = !areFilesInPendingState && !isFinishing;
-  const isContinueEnabled = !areFilesInPendingState && areSomeFilesDone && !isFinishing;
+  const isUploadEnabled = !!bank && !areFilesInPendingState;
+  const isCancelEnabled = !areFilesInPendingState;
+  const isContinueEnabled = !areFilesInPendingState && areSomeFilesDone;
 
   return (
     <>
@@ -350,10 +370,10 @@ export const SelectStep: React.FC = () => {
       )}
 
       <Footer>
-        <Button variant="secondary" disabled={!isCancelEnabled} onClick={resetState}>
+        <Button variant="secondary" disabled={!isCancelEnabled} onClick={onCloseImport}>
           Cancel
         </Button>
-        <Button disabled={!isContinueEnabled} isLoading={isFinishing} onClick={onContinue}>
+        <Button disabled={!isContinueEnabled} onClick={onContinue}>
           Continue
         </Button>
       </Footer>

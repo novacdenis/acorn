@@ -3,17 +3,26 @@
 import type {
   CategoryMapping,
   ExtractedTransaction,
-  ExtractedTransactionBase,
   ExtractedTransactionStatus,
 } from "../../types";
 
 import React from "react";
 import { create } from "zustand";
 import { useShallow } from "zustand/react/shallow";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks";
-import { createClient } from "@/lib/supabase/client";
 import { getApiErrorMessage } from "@/utils";
 
 import { MappingStep } from "./mapping-step";
@@ -21,6 +30,7 @@ import { ProgressStep } from "./progress-step";
 import { ReviewStep } from "./review-step";
 import { SelectStep } from "./select-step";
 import { createTransaction } from "../../actions";
+import { useImportDialogStore } from "../../store";
 
 export const enum Step {
   Select = "select",
@@ -36,33 +46,34 @@ export interface ImportProgress {
   failed: number;
 }
 
-export interface ImportDialogStore {
-  open: boolean;
-  onOpenChange: (value: boolean) => void;
+interface TransactionsStore {
+  transactions: ExtractedTransaction[];
+  setTransactions: (transactions: ExtractedTransaction[]) => void;
+  mappings: CategoryMapping[];
+  setMappings: (mappings: CategoryMapping[]) => void;
 }
 
-export const useImportDialogStore = create<ImportDialogStore>((set) => ({
-  open: false,
-  onOpenChange: (value) => set({ open: value }),
+const useTransactionsStore = create<TransactionsStore>((set) => ({
+  transactions: [],
+  setTransactions: (transactions) => set({ transactions }),
+  mappings: [],
+  setMappings: (mappings) => set({ mappings }),
 }));
 
-export interface ImportDialogContextValue {
+interface ImportDialogContextValue {
   isMobile: boolean;
   transactions: ExtractedTransaction[];
   mappings: CategoryMapping[];
   progress: ImportProgress;
-  resetState: () => void;
-  updateMapping: (alias: string, id?: number) => void;
   updateTransaction: (uid: string, status: ExtractedTransactionStatus) => void;
-  startMapping: (transactions: ExtractedTransaction[]) => Promise<void>;
-  startImport: () => Promise<void>;
   abortImport: () => void;
-  startReview: () => void;
+  onSelectComplete: (transactions: ExtractedTransaction[], mappings: CategoryMapping[]) => void;
+  onMappingComplete: (mappings: CategoryMapping[]) => void;
+  onProgressComplete: () => void;
+  onCloseImport: () => void;
 }
 
-export const ImportDialogContext = React.createContext<ImportDialogContextValue | undefined>(
-  undefined
-);
+const ImportDialogContext = React.createContext<ImportDialogContextValue | undefined>(undefined);
 
 export const useImportDialog = () => {
   const context = React.useContext(ImportDialogContext);
@@ -74,12 +85,15 @@ export const useImportDialog = () => {
 };
 
 export const ImportDialog: React.FC = () => {
-  const [open, onOpenChange] = useImportDialogStore(
-    useShallow((state) => [state.open, state.onOpenChange])
+  const [open, setOpen] = useImportDialogStore(useShallow((store) => [store.open, store.setOpen]));
+  const [isCloseAlertOpen, setIsCloseAlertOpen] = React.useState(false);
+  const [step, setStep] = React.useState<Step>(Step.Select);
+  const [transactions, setTransactions] = useTransactionsStore(
+    useShallow((store) => [store.transactions, store.setTransactions])
   );
-  const [step, setStep] = React.useState(Step.Select);
-  const [mappings, setMappings] = React.useState<CategoryMapping[]>([]);
-  const [transactions, setTransactions] = React.useState<ExtractedTransaction[]>([]);
+  const [mappings, setMappings] = useTransactionsStore(
+    useShallow((store) => [store.mappings, store.setMappings])
+  );
   const [progress, setProgress] = React.useState<ImportProgress>({
     status: "idle",
     total: 0,
@@ -90,115 +104,80 @@ export const ImportDialog: React.FC = () => {
   const isMobile = useMediaQuery("(max-width: 640px)");
   const abortController = React.useRef<AbortController | null>(null);
 
-  const resetState = React.useCallback(() => {
-    onOpenChange(false);
-    setTimeout(() => {
-      setStep(Step.Select);
-      setMappings([]);
-      setTransactions([]);
-      setProgress({ status: "idle", total: 0, imported: 0, failed: 0 });
-    }, 200);
-  }, [onOpenChange]);
+  const updateTransaction = React.useCallback(
+    (uid: string, status: ExtractedTransactionStatus) => {
+      const transaction = useTransactionsStore.getState().transactions;
 
-  const updateMapping = React.useCallback((alias: string, id?: number) => {
-    setMappings((prev) =>
-      prev.map((mapping) => {
-        if (mapping.alias === alias) {
-          return { ...mapping, id };
+      for (let i = 0; i < transaction.length; i++) {
+        if (transaction[i].uid === uid) {
+          transaction[i] = { ...transaction[i], ...status };
+          break;
         }
-
-        return mapping;
-      })
-    );
-  }, []);
-
-  const updateTransaction = React.useCallback((uid: string, status: ExtractedTransactionStatus) => {
-    setTransactions((prev) =>
-      prev.map((t) => {
-        if (t.uid === uid) {
-          const base: ExtractedTransactionBase = {
-            uid: t.uid,
-            data: t.data,
-          };
-
-          return { ...base, ...status };
-        }
-
-        return t;
-      })
-    );
-  }, []);
-
-  const startMapping = React.useCallback(async (transactions: ExtractedTransaction[]) => {
-    const supabase = createClient();
-    const aliases = Array.from(new Set(transactions.map((t) => t.data.category))).map((alias) =>
-      alias.trim()
-    );
-    const mappings: CategoryMapping[] = [];
-
-    const response = await supabase.from("categories").select("*").overlaps("aliases", aliases);
-
-    if (response.data) {
-      for (const alias of aliases) {
-        const category = response.data.find((c) => c.aliases.includes(alias));
-        mappings.push({ alias, id: category?.id });
       }
-    }
 
-    setStep(Step.Mapping);
-    setMappings(mappings);
-    setTransactions(transactions);
-  }, []);
+      setTransactions(transaction);
+    },
+    [setTransactions]
+  );
 
-  const startImport = React.useCallback(async () => {
-    setStep(Step.Progress);
-    setProgress({ status: "loading", total: transactions.length, imported: 0, failed: 0 });
+  const onImportTransactions = React.useCallback(async () => {
+    const transactions = useTransactionsStore.getState().transactions;
+    const mappings = useTransactionsStore.getState().mappings;
 
+    setProgress({
+      status: "loading",
+      total: transactions.length,
+      imported: 0,
+      failed: 0,
+    });
     abortController.current = new AbortController();
 
     for (const transaction of transactions) {
       if (abortController.current.signal.aborted) {
-        break;
+        updateTransaction(transaction.uid, {
+          status: "error",
+          error: "Transaction was skipped. Due to import cancellation.",
+        });
+        setProgress((prev) => ({
+          ...prev,
+          failed: prev.failed + 1,
+        }));
+        continue;
       }
-      if (transaction.status !== "idle") {
+      if (transaction.status !== "pending") {
         continue;
       }
 
       updateTransaction(transaction.uid, { status: "loading" });
 
       try {
-        const category = mappings.find(
-          (mapping) => mapping.alias === transaction.data.category
-        )?.id;
+        const mapping = mappings.find((m) => m.alias === transaction.data.category_alias);
 
-        if (!category) {
-          throw new Error("Category not found.");
+        if (mapping?.category_id) {
+          await createTransaction({
+            description: transaction.data.description,
+            amount: transaction.data.amount,
+            timestamp: transaction.data.timestamp,
+            category_id: mapping.category_id,
+          });
+          updateTransaction(transaction.uid, { status: "done" });
+        } else {
+          updateTransaction(transaction.uid, { status: "skipped" });
         }
-
-        const response = await createTransaction({
-          description: transaction.data.description,
-          category_id: category,
-          amount: transaction.data.amount,
-          timestamp: transaction.data.timestamp,
-        });
 
         setProgress((prev) => ({
           ...prev,
           imported: prev.imported + 1,
         }));
-        updateTransaction(transaction.uid, {
-          status: "done",
-          response,
-        });
       } catch (error) {
-        setProgress((prev) => ({
-          ...prev,
-          failed: prev.failed + 1,
-        }));
         updateTransaction(transaction.uid, {
           status: "error",
           error: getApiErrorMessage(error, "An error occurred while importing transaction."),
         });
+        setProgress((prev) => ({
+          ...prev,
+          failed: prev.failed + 1,
+        }));
       }
     }
 
@@ -206,7 +185,7 @@ export const ImportDialog: React.FC = () => {
       ...prev,
       status: abortController.current?.signal.aborted ? "cancelled" : "done",
     }));
-  }, [mappings, transactions, updateTransaction]);
+  }, [updateTransaction]);
 
   const abortImport = React.useCallback(() => {
     if (abortController.current) {
@@ -214,9 +193,50 @@ export const ImportDialog: React.FC = () => {
     }
   }, []);
 
-  const startReview = React.useCallback(() => {
+  const onSelectComplete = React.useCallback(
+    (transactions: ExtractedTransaction[], mappings: CategoryMapping[]) => {
+      setTransactions(transactions);
+      setMappings(mappings);
+
+      if (mappings.some((m) => !m.category_id)) {
+        setStep(Step.Mapping);
+      } else {
+        setStep(Step.Progress);
+        onImportTransactions();
+      }
+    },
+    [setTransactions, setMappings, onImportTransactions]
+  );
+
+  const onMappingComplete = React.useCallback(
+    (mappings: CategoryMapping[]) => {
+      setStep(Step.Progress);
+      setMappings(mappings);
+      onImportTransactions();
+    },
+    [setMappings, onImportTransactions]
+  );
+
+  const onProgressComplete = React.useCallback(() => {
     setStep(Step.Review);
   }, []);
+
+  const onResetState = React.useCallback(() => {
+    setOpen(false);
+    setTimeout(() => {
+      setStep(Step.Select);
+      setTransactions([]);
+      setMappings([]);
+    }, 200);
+  }, [setOpen, setTransactions, setMappings]);
+
+  const onCloseImport = React.useCallback(() => {
+    if (step !== Step.Select) {
+      onResetState();
+    } else {
+      setIsCloseAlertOpen(true);
+    }
+  }, [step, onResetState]);
 
   const Root = isMobile ? Drawer : Dialog;
   const Content = isMobile ? DrawerContent : DialogContent;
@@ -224,35 +244,40 @@ export const ImportDialog: React.FC = () => {
   const value = React.useMemo(
     () => ({
       isMobile,
-      mappings,
       transactions,
+      mappings,
       progress,
-      resetState,
-      updateMapping,
       updateTransaction,
-      startMapping,
-      startImport,
       abortImport,
-      startReview,
+      onSelectComplete,
+      onMappingComplete,
+      onProgressComplete,
+      onCloseImport,
     }),
     [
       isMobile,
-      mappings,
       transactions,
+      mappings,
       progress,
-      resetState,
-      updateMapping,
       updateTransaction,
-      startMapping,
-      startImport,
       abortImport,
-      startReview,
+      onSelectComplete,
+      onMappingComplete,
+      onProgressComplete,
+      onCloseImport,
     ]
   );
 
   return (
     <ImportDialogContext.Provider value={value}>
-      <Root open={open} onOpenChange={onOpenChange}>
+      <Root
+        open={open}
+        onOpenChange={(value) => {
+          if (value === false) {
+            onCloseImport();
+          }
+        }}
+      >
         <Content
           onDragOver={(e) => {
             e.preventDefault();
@@ -275,6 +300,24 @@ export const ImportDialog: React.FC = () => {
           {step === Step.Mapping && <MappingStep />}
           {step === Step.Progress && <ProgressStep />}
           {step === Step.Review && <ReviewStep />}
+
+          <AlertDialog open={isCloseAlertOpen} onOpenChange={setIsCloseAlertOpen}>
+            <AlertDialogOverlay className="absolute rounded-2xl">
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    There are unsaved changes. Are you sure you want to close the panel? Your
+                    changes will be lost.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={onResetState}>Discard</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialogOverlay>
+          </AlertDialog>
         </Content>
       </Root>
     </ImportDialogContext.Provider>
